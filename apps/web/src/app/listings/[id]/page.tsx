@@ -110,8 +110,8 @@ export default async function ListingPage({ params }: { params: { id: string } }
             )}
           </div>
 
-          {/* Right — sticky price card */}
-          <div style={{ position: 'sticky', top: 100 }}>
+          {/* Right — price card (no sticky to avoid stacking context trapping modals) */}
+          <div style={{ position: 'relative' }}>
             <div style={{ background: '#0D0D0D', border: '1px solid #1A1A1A', borderRadius: 16, padding: 28, marginBottom: 16 }}>
               <div style={{ fontSize: 11, color: '#595959', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Asking Price</div>
               <div style={{ fontSize: 36, fontWeight: 800, color: '#fff', marginBottom: 4 }}>{price}</div>
