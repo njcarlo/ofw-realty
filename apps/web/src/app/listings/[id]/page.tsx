@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { Navbar } from '@/components/Navbar'
+import { ClosingCostCalculator } from '@/components/ClosingCostCalculator'
 import Link from 'next/link'
 
 const DEMO_LISTINGS: Record<string, any> = {
@@ -130,6 +131,11 @@ export default async function ListingPage({ params }: { params: { id: string } }
                   🧮 Closing Cost Calculator
                 </Link>
               </div>
+            </div>
+
+            {/* Closing cost calculator inline */}
+            <div style={{ marginTop: 16 }}>
+              <ClosingCostCalculator listingId={listing.id} listingPrice={listing.price_php} />
             </div>
 
             {/* Agent card */}
