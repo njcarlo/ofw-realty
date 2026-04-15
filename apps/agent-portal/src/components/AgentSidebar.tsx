@@ -11,6 +11,7 @@ const NAV = [
   { icon: '💰', label: 'Commissions', href: '/commissions' },
   { icon: '📱', label: 'Social Media', href: '/social' },
   { icon: '🏆', label: 'Performance', href: '/performance' },
+  { icon: '📄', label: 'Documents', href: '/documents' },
 ]
 
 export function AgentSidebar() {
