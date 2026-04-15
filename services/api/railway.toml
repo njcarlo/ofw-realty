@@ -8,3 +8,7 @@ restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
 
 [environments.production]
+
+# Disable Railway's vulnerability scanner for monorepo
+# The root package-lock.json contains Next.js (for the web apps) which
+# triggers false positives — the API itself has no Next.js dependency.
