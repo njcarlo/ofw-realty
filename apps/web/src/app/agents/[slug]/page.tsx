@@ -3,10 +3,13 @@ import { Navbar } from '@/components/Navbar'
 import Link from 'next/link'
 
 async function getAgent(slug: string) {
-  const apiUrl = process.env.API_URL ?? 'http://localhost:3001'
-  const res = await fetch(`${apiUrl}/agents/${slug}`, { next: { revalidate: 60 } })
-  if (!res.ok) return null
-  return res.json()
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL ?? ''
+  if (!apiUrl) return null
+  try {
+    const res = await fetch(`${apiUrl}/agents/${slug}`, { next: { revalidate: 60 } })
+    if (!res.ok) return null
+    return res.json()
+  } catch { return null }
 }
 
 export default async function AgentPortfolioPage({ params }: { params: { slug: string } }) {

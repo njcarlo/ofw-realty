@@ -6,9 +6,13 @@ export async function GET(
 ) {
   const { searchParams } = new URL(req.url)
   const sellingPrice = searchParams.get('selling_price')
-  const apiUrl = process.env.API_URL ?? 'http://localhost:3001'
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL ?? 'http://localhost:3001'
   const url = `${apiUrl}/listings/${params.id}/closing-costs${sellingPrice ? `?selling_price=${sellingPrice}` : ''}`
-  const res = await fetch(url)
-  const data = await res.json()
-  return NextResponse.json(data)
+  try {
+    const res = await fetch(url)
+    if (!res.ok) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    return NextResponse.json(await res.json())
+  } catch {
+    return NextResponse.json({ error: 'API unavailable' }, { status: 503 })
+  }
 }

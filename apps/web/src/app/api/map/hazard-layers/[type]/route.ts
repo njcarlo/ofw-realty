@@ -4,11 +4,14 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { type: string } }
 ) {
-  const apiUrl = process.env.API_URL ?? 'http://localhost:3001'
-  const res = await fetch(`${apiUrl}/map/hazard-layers/${params.type}`)
-  if (!res.ok) {
-    return NextResponse.json({ error: 'Layer unavailable' }, { status: 503 })
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL ?? ''
+  if (!apiUrl) return NextResponse.json({ type: 'FeatureCollection', features: [] })
+
+  try {
+    const res = await fetch(`${apiUrl}/map/hazard-layers/${params.type}`, { next: { revalidate: 3600 } })
+    if (!res.ok) return NextResponse.json({ type: 'FeatureCollection', features: [] })
+    return NextResponse.json(await res.json())
+  } catch {
+    return NextResponse.json({ type: 'FeatureCollection', features: [] })
   }
-  const data = await res.json()
-  return NextResponse.json(data)
 }

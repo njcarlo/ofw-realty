@@ -4,7 +4,8 @@ interface Props {
 }
 
 export async function ZonalValueBadge({ city, province }: Props) {
-  const apiUrl = process.env.API_URL ?? 'http://localhost:3001'
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL ?? ''
+  if (!apiUrl) return null
   try {
     const res = await fetch(
       `${apiUrl}/map/zonal-value?city=${encodeURIComponent(city)}&province=${encodeURIComponent(province)}`,

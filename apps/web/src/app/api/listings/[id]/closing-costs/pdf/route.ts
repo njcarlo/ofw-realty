@@ -6,7 +6,7 @@ export async function GET(
 ) {
   const { searchParams } = new URL(req.url)
   const sellingPrice = searchParams.get('selling_price')
-  const apiUrl = process.env.API_URL ?? 'http://localhost:3001'
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL ?? 'http://localhost:3001'
 
   // Fetch listing and closing costs
   const [listingRes, costsRes] = await Promise.all([

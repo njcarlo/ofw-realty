@@ -15,8 +15,8 @@ const ROLES = [
 ]
 
 const PORTAL_URLS: Record<string, string> = {
-  realtor:      process.env.NEXT_PUBLIC_AGENT_PORTAL_URL  ?? 'https://ofw-realty-agent-portal.vercel.app',
-  broker_admin: process.env.NEXT_PUBLIC_BROKER_PORTAL_URL ?? 'https://ofw-realty-broker-portal.vercel.app',
+  realtor:      'https://ofw-realty-agent-portal.vercel.app',
+  broker_admin: 'https://ofw-realty-broker-portal.vercel.app',
   buyer:        '/dashboard',
   seller:       '/dashboard',
 }
