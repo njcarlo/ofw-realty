@@ -3,7 +3,7 @@ import './globals.css'
 import { ThemeProvider } from '@/components/ThemeProvider'
 
 export const metadata: Metadata = {
-  title: 'LUPAPH — Lots, Units, Properties Anywhere',
+  title: 'LUPA PH — Lots, Units, Properties Anywhere',
   description: 'Philippine real estate marketplace for OFWs and Filipinos abroad.',
 }
 
@@ -14,6 +14,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+        {/* MapLibre GL CSS — loaded via CDN to avoid PostCSS processing issues */}
+        <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
         {/* Prevent flash of wrong theme */}
         <script dangerouslySetInnerHTML={{ __html: `
           try {

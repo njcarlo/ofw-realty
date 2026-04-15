@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
-import 'maplibre-gl/dist/maplibre-gl.css'
+// maplibre-gl CSS is loaded via <link> in layout.tsx to avoid PostCSS build errors
 import { createClient } from '@supabase/supabase-js'
 import {
   PHILIPPINES_CENTER, PHILIPPINES_BOUNDS,
