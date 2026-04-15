@@ -116,17 +116,17 @@ ON CONFLICT (id) DO NOTHING;
 -- Insert dummy photos for each listing
 INSERT INTO listing_photos (listing_id, url, is_primary, sort_order)
 SELECT id, 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800', true, 0
-FROM listings WHERE id LIKE 'b1000%'
+FROM listings WHERE id::text LIKE 'b1000%'
 ON CONFLICT DO NOTHING;
 
 INSERT INTO listing_photos (listing_id, url, is_primary, sort_order)
 SELECT id, 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800', false, 1
-FROM listings WHERE id LIKE 'b1000%'
+FROM listings WHERE id::text LIKE 'b1000%'
 ON CONFLICT DO NOTHING;
 
 INSERT INTO listing_photos (listing_id, url, is_primary, sort_order)
 SELECT id, 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800', false, 2
-FROM listings WHERE id LIKE 'b1000%'
+FROM listings WHERE id::text LIKE 'b1000%'
 ON CONFLICT DO NOTHING;
 
 -- ============================================================
