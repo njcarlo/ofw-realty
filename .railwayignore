@@ -1,0 +1,6 @@
+apps/
+packages/
+supabase/
+docs/
+n8n/
+scripts/
