@@ -11,8 +11,8 @@ const supabase = createClient(
 const PORTAL_URLS: Record<string, string> = {
   buyer:        '/dashboard',
   seller:       '/dashboard',
-  realtor:      process.env.NEXT_PUBLIC_AGENT_PORTAL_URL  ?? 'http://localhost:3002',
-  broker_admin: process.env.NEXT_PUBLIC_BROKER_PORTAL_URL ?? 'http://localhost:3003',
+  realtor:      process.env.NEXT_PUBLIC_AGENT_PORTAL_URL  ?? 'https://ofw-realty-agent-portal.vercel.app',
+  broker_admin: process.env.NEXT_PUBLIC_BROKER_PORTAL_URL ?? 'https://ofw-realty-broker-portal.vercel.app',
 }
 
 const DEMO_ACCOUNTS = [
@@ -165,7 +165,7 @@ export function DemoLoginPanel({ onClose }: Props) {
                 {loading === account.role ? '⏳ Logging in...' : `Login as ${account.role}`}
               </button>
               <div style={{ fontSize: 10, color: isDark ? '#595959' : '#9CA3AF', textAlign: 'center', marginTop: 6 }}>
-                → {account.userRole === 'realtor' ? 'Agent Portal :3002' : account.userRole === 'broker_admin' ? 'Broker Portal :3003' : 'Buyer Dashboard'}
+                → {account.userRole === 'realtor' ? 'agent-portal.vercel.app' : account.userRole === 'broker_admin' ? 'broker-portal.vercel.app' : 'Buyer Dashboard'}
               </div>
             </div>
           ))}

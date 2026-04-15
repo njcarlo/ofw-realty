@@ -11,8 +11,8 @@ const supabase = createClient(
 
 // Portal URLs — in production these are subdomains; locally they're ports
 const PORTAL_URLS: Record<string, string> = {
-  realtor:      process.env.NEXT_PUBLIC_AGENT_PORTAL_URL  ?? 'http://localhost:3002',
-  broker_admin: process.env.NEXT_PUBLIC_BROKER_PORTAL_URL ?? 'http://localhost:3003',
+  realtor:      process.env.NEXT_PUBLIC_AGENT_PORTAL_URL  ?? 'https://ofw-realty-agent-portal.vercel.app',
+  broker_admin: process.env.NEXT_PUBLIC_BROKER_PORTAL_URL ?? 'https://ofw-realty-broker-portal.vercel.app',
 }
 
 const BUYER_SECTIONS = [
