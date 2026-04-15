@@ -2,8 +2,8 @@
   "name": "lupaph-portal",
   "framework": "nextjs",
   "regions": ["sin1"],
-  "installCommand": "cd ../.. && npm install",
-  "buildCommand": "cd ../.. && npx turbo build --filter=@ofw-realty/web",
+  "installCommand": "cd ../.. && npm install --ignore-scripts",
+  "buildCommand": "cd ../.. && npx turbo build --filter=@ofw-realty/web --no-daemon",
   "outputDirectory": ".next",
   "headers": [
     {

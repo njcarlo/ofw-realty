@@ -15,7 +15,6 @@
     "@ofw-realty/ui": "*",
     "@ofw-realty/utils": "*",
     "@supabase/supabase-js": "^2.103.0",
-    "@tailwindcss/postcss": "^4.2.2",
     "maplibre-gl": "^4.7.1",
     "next": "14.2.35",
     "react": "^18.3.0",
@@ -26,7 +25,7 @@
     "@types/react": "^18",
     "autoprefixer": "^10.4.27",
     "postcss": "^8.4.49",
-    "tailwindcss": "^4.2.2",
+    "tailwindcss": "^3.4.0",
     "typescript": "^5.4.0"
   }
 }
