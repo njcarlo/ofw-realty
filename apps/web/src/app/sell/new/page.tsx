@@ -43,6 +43,7 @@ export default function NewListingPage() {
   const [address, setAddress] = useState('')
   const [lat, setLat] = useState<number | null>(null)
   const [lng, setLng] = useState<number | null>(null)
+  const [propertyPolygon, setPropertyPolygon] = useState<GeoJSON.Polygon | null>(null)
   const [lotArea, setLotArea] = useState('')
   const [blockNo, setBlockNo] = useState('')
   const [lotNo, setLotNo] = useState('')
@@ -134,6 +135,7 @@ export default function NewListingPage() {
           agent_note: agentNote || undefined,
           lat: lat!,
           lng: lng!,
+          boundary_geojson: propertyPolygon ?? undefined,
         }),
       })
 
@@ -288,10 +290,11 @@ export default function NewListingPage() {
                 <MapPicker
                   lat={lat ?? undefined}
                   lng={lng ?? undefined}
-                  onChange={(newLat, newLng, detectedAddress) => {
+                  polygon={propertyPolygon}
+                  onChange={(newLat, newLng, poly, detectedAddress) => {
                     setLat(newLat)
                     setLng(newLng)
-                    // Auto-fill address if detected from geocoder
+                    setPropertyPolygon(poly ?? null)
                     if (detectedAddress && !address) {
                       const parts = detectedAddress.split(',')
                       if (parts.length > 0 && !address) setAddress(parts[0].trim())

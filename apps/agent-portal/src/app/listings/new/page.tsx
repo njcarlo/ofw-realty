@@ -38,6 +38,7 @@ export default function NewListingPage() {
   const [address, setAddress] = useState('')
   const [lat, setLat] = useState<number | null>(null)
   const [lng, setLng] = useState<number | null>(null)
+  const [propertyPolygon, setPropertyPolygon] = useState<GeoJSON.Polygon | null>(null)
   const [lotArea, setLotArea] = useState('')
   const [blockNo, setBlockNo] = useState('')
   const [lotNo, setLotNo] = useState('')
@@ -107,6 +108,7 @@ export default function NewListingPage() {
           photo_urls: validPhotos,
           lat: lat!,
           lng: lng!,
+          boundary_geojson: propertyPolygon ?? undefined,
         }),
       })
       setSubmitted(true)
@@ -236,7 +238,8 @@ export default function NewListingPage() {
                   <MapPicker
                     lat={lat ?? undefined}
                     lng={lng ?? undefined}
-                    onChange={(newLat, newLng) => { setLat(newLat); setLng(newLng) }}
+                    polygon={propertyPolygon}
+                    onChange={(newLat, newLng, poly) => { setLat(newLat); setLng(newLng); setPropertyPolygon(poly ?? null) }}
                   />
                 </div>
               </div>
