@@ -21,15 +21,26 @@ const CATEGORIES = [
   { label: 'Commercial', value: 'commercial' },
 ]
 
+const DEMO_LISTINGS = [
+  { id: 'd1', title: 'Modern House & Lot in Bacoor Cavite', property_type: 'house_and_lot', price_php: 3200000, city: 'Bacoor', province: 'Cavite', lot_area_sqm: 120, is_featured: true, blockchain_verified: true, scam_flagged: false, status: 'active', listing_photos: [{ url: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&q=80', is_primary: true }], realtors: { users: { full_name: 'Maria Santos' }, verified_badge: true } },
+  { id: 'd2', title: 'Condo Unit in Cebu IT Park', property_type: 'condo', price_php: 4500000, city: 'Cebu City', province: 'Cebu', lot_area_sqm: 32, is_featured: true, blockchain_verified: true, scam_flagged: false, status: 'active', listing_photos: [{ url: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&q=80', is_primary: true }], realtors: { users: { full_name: 'Juan Santos' }, verified_badge: true } },
+  { id: 'd3', title: 'Residential Lot in Sta. Rosa Laguna', property_type: 'residential_lot', price_php: 1800000, city: 'Sta. Rosa', province: 'Laguna', lot_area_sqm: 200, is_featured: false, blockchain_verified: true, scam_flagged: false, status: 'active', listing_photos: [{ url: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&q=80', is_primary: true }], realtors: { users: { full_name: 'Ana Cruz' }, verified_badge: false } },
+  { id: 'd4', title: 'Farm Lot in Batangas', property_type: 'farm_lot', price_php: 2500000, city: 'Lipa', province: 'Batangas', lot_area_sqm: 1000, is_featured: false, blockchain_verified: false, scam_flagged: false, status: 'active', listing_photos: [{ url: 'https://images.unsplash.com/photo-1500076656116-558758c991c1?w=600&q=80', is_primary: true }], realtors: { users: { full_name: 'Pedro Reyes' }, verified_badge: false } },
+  { id: 'd5', title: 'House & Lot in Davao City', property_type: 'house_and_lot', price_php: 5800000, city: 'Davao City', province: 'Davao del Sur', lot_area_sqm: 180, is_featured: true, blockchain_verified: true, scam_flagged: false, status: 'active', listing_photos: [{ url: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&q=80', is_primary: true }], realtors: { users: { full_name: 'Liza Flores' }, verified_badge: true } },
+  { id: 'd6', title: 'Commercial Space in BGC Taguig', property_type: 'commercial', price_php: 12000000, city: 'Taguig', province: 'Metro Manila', lot_area_sqm: 85, is_featured: false, blockchain_verified: true, scam_flagged: false, status: 'active', listing_photos: [{ url: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&q=80', is_primary: true }], realtors: { users: { full_name: 'Carlo Mendoza' }, verified_badge: true } },
+]
+
 async function getListings(type?: string) {
-  const apiUrl = process.env.API_URL ?? 'http://localhost:3001'
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL ?? ''
+  if (!apiUrl) return type ? DEMO_LISTINGS.filter(l => l.property_type === type) : DEMO_LISTINGS
   const params = new URLSearchParams()
   if (type) params.set('property_type', type)
   try {
     const res = await fetch(`${apiUrl}/listings?${params}`, { next: { revalidate: 60 } })
-    if (!res.ok) return []
-    return res.json()
-  } catch { return [] }
+    if (!res.ok) return type ? DEMO_LISTINGS.filter(l => l.property_type === type) : DEMO_LISTINGS
+    const data = await res.json()
+    return data.length > 0 ? data : (type ? DEMO_LISTINGS.filter((l: any) => l.property_type === type) : DEMO_LISTINGS)
+  } catch { return type ? DEMO_LISTINGS.filter(l => l.property_type === type) : DEMO_LISTINGS }
 }
 
 export default async function HomePage({ searchParams }: { searchParams: { type?: string } }) {
