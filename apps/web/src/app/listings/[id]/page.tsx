@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { Navbar } from '@/components/Navbar'
 import { ClosingCostCalculator } from '@/components/ClosingCostCalculator'
+import { ListingActions } from '@/components/ListingActions'
 import Link from 'next/link'
 
 const DEMO_LISTINGS: Record<string, any> = {
@@ -121,12 +122,12 @@ export default async function ListingPage({ params }: { params: { id: string } }
               )}
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <button style={{ background: '#703BF7', color: '#fff', border: 'none', borderRadius: 8, padding: '14px 0', fontSize: 15, fontWeight: 600, cursor: 'pointer', boxShadow: '0 0 24px rgba(112,59,247,0.35)' }}>
-                  💬 Send Inquiry
-                </button>
-                <button style={{ background: 'transparent', color: '#fff', border: '1px solid #262626', borderRadius: 8, padding: '12px 0', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>
-                  📅 Schedule Viewing
-                </button>
+                <ListingActions
+                  listingId={listing.id}
+                  listingTitle={listing.title}
+                  listingPrice={listing.price_php}
+                  realtorName={realtor?.users?.full_name}
+                />
                 <Link href={`/listings/${listing.id}/closing-costs`} style={{ background: 'transparent', color: '#703BF7', border: '1px solid rgba(112,59,247,0.25)', borderRadius: 8, padding: '12px 0', fontSize: 14, fontWeight: 500, textAlign: 'center', display: 'block' }}>
                   🧮 Closing Cost Calculator
                 </Link>
