@@ -10,7 +10,7 @@ const supabase = createClient(
 
 const PORTAL_URLS: Record<string, string> = {
   buyer:        '/dashboard',
-  seller:       '/dashboard',
+  seller:       '/sell',
   realtor:      'https://ofw-realty-agent-portal.vercel.app',
   broker_admin: 'https://ofw-realty-broker-portal.vercel.app',
 }
@@ -26,6 +26,17 @@ const DEMO_ACCOUNTS = [
     desc: 'Browse properties, save listings, submit inquiries, SPA workflow',
     color: '#10B981',
     features: ['Browse & save properties', 'Submit inquiries', 'SPA workflow', 'Financing calculator'],
+  },
+  {
+    role: 'Seller',
+    userRole: 'seller',
+    icon: '🏷️',
+    email: 'seller@demo.lupaph.com',
+    password: 'Demo@12345',
+    name: 'Pedro Seller Reyes',
+    desc: 'List your property, request agent representation, track inquiries',
+    color: '#06B6D4',
+    features: ['List properties', 'Pin on map', 'Request agent/broker', 'Track views & inquiries'],
   },
   {
     role: 'Agent',
@@ -118,7 +129,7 @@ export function DemoLoginPanel({ onClose }: Props) {
         </div>
 
         {/* Account cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 20 }}>
           {DEMO_ACCOUNTS.map(account => (
             <div key={account.role} style={{
               background: isDark ? '#141414' : '#F9FAFB',
@@ -165,7 +176,7 @@ export function DemoLoginPanel({ onClose }: Props) {
                 {loading === account.role ? '⏳ Logging in...' : `Login as ${account.role}`}
               </button>
               <div style={{ fontSize: 10, color: isDark ? '#595959' : '#9CA3AF', textAlign: 'center', marginTop: 6 }}>
-                → {account.userRole === 'realtor' ? 'agent-portal.vercel.app' : account.userRole === 'broker_admin' ? 'broker-portal.vercel.app' : 'Buyer Dashboard'}
+                → {account.userRole === 'realtor' ? 'agent-portal.vercel.app' : account.userRole === 'broker_admin' ? 'broker-portal.vercel.app' : account.userRole === 'seller' ? 'Seller Dashboard' : 'Buyer Dashboard'}
               </div>
             </div>
           ))}

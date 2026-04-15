@@ -128,3 +128,21 @@ INSERT INTO listing_photos (listing_id, url, is_primary, sort_order)
 SELECT id, 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800', false, 2
 FROM listings WHERE id LIKE 'b1000%'
 ON CONFLICT DO NOTHING;
+
+-- ============================================================
+-- Demo Accounts — for testing (run after auth users are created)
+-- Create these in Supabase Auth dashboard or via API:
+--
+-- seller@demo.lupaph.com / Demo@12345 / role: seller / full_name: Pedro Seller Reyes
+--
+-- Then insert the user record:
+-- ============================================================
+
+INSERT INTO users (id, email, full_name, role, email_verified)
+VALUES (
+  'a1b2c3d4-0000-0000-0000-000000000004',
+  'seller@demo.lupaph.com',
+  'Pedro Seller Reyes',
+  'seller',
+  true
+) ON CONFLICT (id) DO NOTHING;
