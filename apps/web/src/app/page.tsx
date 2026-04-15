@@ -43,6 +43,8 @@ async function getListings(type?: string) {
   } catch { return type ? DEMO_LISTINGS.filter(l => l.property_type === type) : DEMO_LISTINGS }
 }
 
+export const dynamic = 'force-dynamic'
+
 export default async function HomePage({ searchParams }: { searchParams: { type?: string } }) {
   const listings = await getListings(searchParams.type)
 
