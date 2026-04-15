@@ -1,0 +1,32 @@
+{
+  "name": "@ofw-realty/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@ofw-realty/api-client": "*",
+    "@ofw-realty/auth": "*",
+    "@ofw-realty/map": "*",
+    "@ofw-realty/ui": "*",
+    "@ofw-realty/utils": "*",
+    "@supabase/supabase-js": "^2.103.0",
+    "@tailwindcss/postcss": "^4.2.2",
+    "maplibre-gl": "^4.7.1",
+    "next": "14.2.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "autoprefixer": "^10.4.27",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^5.4.0"
+  }
+}

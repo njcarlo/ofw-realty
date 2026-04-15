@@ -1,0 +1,47 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Typhoon Yolanda (Haiyan) Track 2013", "category": "Super Typhoon" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [130.00, 10.80], [128.00, 11.00], [126.00, 11.20], [124.50, 11.40],
+          [122.50, 11.80], [120.50, 12.50], [118.50, 13.50]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Typhoon Odette (Rai) Track 2021", "category": "Super Typhoon" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [130.00, 9.50], [128.00, 9.80], [126.00, 10.00], [124.00, 10.20],
+          [122.00, 10.80], [120.00, 11.50], [118.00, 12.50]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Typhoon Belt - Northern Luzon", "risk": "High" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [119.50, 17.00], [122.50, 17.00], [122.50, 20.00], [119.50, 20.00], [119.50, 17.00]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Typhoon Belt - Eastern Philippines", "risk": "High" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [125.00, 10.00], [127.00, 10.00], [127.00, 15.00], [125.00, 15.00], [125.00, 10.00]
+        ]]
+      }
+    }
+  ]
+}

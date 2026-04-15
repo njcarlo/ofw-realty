@@ -1,0 +1,8 @@
+{
+  "name": "lupaph-admin",
+  "framework": "nextjs",
+  "regions": ["sin1"],
+  "installCommand": "cd ../.. && npm install",
+  "buildCommand": "cd ../.. && npx turbo build --filter=@ofw-realty/admin-portal",
+  "outputDirectory": ".next"
+}

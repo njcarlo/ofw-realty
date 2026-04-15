@@ -1,0 +1,30 @@
+{
+  "name": "ofw-realty",
+  "private": true,
+  "packageManager": "npm@10.9.2",
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo build",
+    "dev": "node scripts/kill-ports.js && turbo dev --filter=@ofw-realty/web --filter=@ofw-realty/agent-portal --filter=@ofw-realty/broker-portal --filter=@ofw-realty/api",
+    "kill": "node scripts/kill-ports.js",
+    "dev:all": "node scripts/kill-ports.js && turbo dev",
+    "dev:web": "turbo dev --filter=@ofw-realty/web",
+    "dev:agent": "turbo dev --filter=@ofw-realty/agent-portal",
+    "dev:broker": "turbo dev --filter=@ofw-realty/broker-portal",
+    "dev:api": "turbo dev --filter=@ofw-realty/api",
+    "lint": "turbo lint",
+    "test": "turbo test"
+  },
+  "devDependencies": {
+    "kill-port": "^2.0.1",
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.0"
+  },
+  "dependencies": {
+    "reflect-metadata": "^0.2.2"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "@ofw-realty/notifications",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "ts-node src/main.ts",
+    "build": "tsc",
+    "start": "node dist/main"
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/core": "^10.0.0",
+    "@nestjs/platform-express": "^10.0.0",
+    "resend": "^3.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "typescript": "^5.4.0",
+    "ts-node": "^10.9.0"
+  }
+}

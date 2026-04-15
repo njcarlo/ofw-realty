@@ -1,0 +1,55 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "West Valley Fault", "type": "Active Fault" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [121.08, 14.30], [121.06, 14.45], [121.04, 14.60], [121.02, 14.75], [121.00, 14.90]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "East Valley Fault", "type": "Active Fault" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [121.15, 14.35], [121.13, 14.50], [121.11, 14.65], [121.09, 14.80]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Philippine Fault Zone - Luzon", "type": "Major Fault" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [121.50, 13.50], [121.60, 14.20], [121.70, 15.00], [121.80, 15.80], [121.90, 16.60], [122.00, 17.40]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Philippine Fault Zone - Visayas", "type": "Major Fault" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [124.00, 9.50], [124.20, 10.20], [124.40, 10.90], [124.60, 11.60]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Cotabato Fault", "type": "Active Fault" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [124.20, 6.80], [124.50, 7.20], [124.80, 7.60], [125.10, 8.00]
+        ]
+      }
+    }
+  ]
+}

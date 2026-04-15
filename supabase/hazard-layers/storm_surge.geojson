@@ -1,0 +1,45 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Eastern Samar Storm Surge Zone", "risk": "High" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [125.40, 11.00], [125.70, 11.00], [125.70, 11.80], [125.40, 11.80], [125.40, 11.00]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Tacloban Storm Surge Zone", "risk": "High" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [124.95, 11.10], [125.10, 11.10], [125.10, 11.30], [124.95, 11.30], [124.95, 11.10]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Batanes Storm Surge Zone", "risk": "High" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [121.80, 20.20], [122.20, 20.20], [122.20, 20.60], [121.80, 20.60], [121.80, 20.20]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Quezon Pacific Coast Storm Surge", "risk": "Medium" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [122.00, 13.60], [122.30, 13.60], [122.30, 14.20], [122.00, 14.20], [122.00, 13.60]
+        ]]
+      }
+    }
+  ]
+}

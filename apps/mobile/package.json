@@ -1,0 +1,24 @@
+{
+  "name": "@ofw-realty/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "dev": "expo start",
+    "build": "expo export",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "expo": "~51.0.0",
+    "react": "18.2.0",
+    "react-native": "0.74.0",
+    "@supabase/supabase-js": "^2.43.0",
+    "@ofw-realty/auth": "*",
+    "@ofw-realty/api-client": "*",
+    "@ofw-realty/utils": "*"
+  },
+  "devDependencies": {
+    "@types/react": "~18.2.0",
+    "typescript": "^5.4.0"
+  }
+}

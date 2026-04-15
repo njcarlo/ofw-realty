@@ -1,0 +1,214 @@
+{
+  "name": "LUPA PH — Facebook Ads Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "facebook-ads-create",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook: Create Campaign",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v19.0/act_{{$env.META_AD_ACCOUNT_ID}}/campaigns",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "facebookGraphApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "name", "value": "=LUPA PH — {{$json.body.listing.title}}" },
+            { "name": "objective", "value": "OUTCOME_LEADS" },
+            { "name": "status", "value": "PAUSED" },
+            { "name": "special_ad_categories", "value": "[]" },
+            { "name": "daily_budget", "value": "={{Math.round($json.body.budget_php / $json.body.duration_days * 100)}}" }
+          ]
+        }
+      },
+      "id": "create-campaign",
+      "name": "Meta: Create Campaign",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v19.0/act_{{$env.META_AD_ACCOUNT_ID}}/adsets",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "facebookGraphApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "name", "value": "=OFW Targeting — {{$json.body.listing.city}}" },
+            { "name": "campaign_id", "value": "={{$node['Meta: Create Campaign'].json.id}}" },
+            { "name": "billing_event", "value": "IMPRESSIONS" },
+            { "name": "optimization_goal", "value": "LEAD_GENERATION" },
+            { "name": "targeting", "value": "={\"geo_locations\":{\"countries\":{{JSON.stringify($json.body.target_countries)}}},\"age_min\":25,\"age_max\":55,\"interests\":[{\"id\":\"6003107902433\",\"name\":\"Real estate\"},{\"id\":\"6003348604959\",\"name\":\"Investment\"},{\"id\":\"6003139266461\",\"name\":\"Overseas Filipino Worker\"}]}" },
+            { "name": "status", "value": "PAUSED" },
+            { "name": "daily_budget", "value": "={{Math.round($json.body.budget_php / $json.body.duration_days * 100)}}" },
+            { "name": "start_time", "value": "={{new Date().toISOString()}}" },
+            { "name": "end_time", "value": "={{new Date(Date.now() + $json.body.duration_days * 86400000).toISOString()}}" }
+          ]
+        }
+      },
+      "id": "create-adset",
+      "name": "Meta: Create Ad Set",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v19.0/act_{{$env.META_AD_ACCOUNT_ID}}/adcreatives",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "facebookGraphApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "name", "value": "=Creative — {{$json.body.listing.title}}" },
+            { "name": "object_story_spec", "value": "={\"page_id\":\"{{$env.META_PAGE_ID}}\",\"link_data\":{\"image_url\":\"{{$json.body.listing.image_url}}\",\"link\":\"{{$env.APP_URL}}/listings/{{$json.body.listing.id}}\",\"message\":\"{{$json.body.caption}}\",\"call_to_action\":{\"type\":\"LEARN_MORE\",\"value\":{\"link\":\"{{$env.APP_URL}}/listings/{{$json.body.listing.id}}\"}}}}" }
+          ]
+        }
+      },
+      "id": "create-creative",
+      "name": "Meta: Create Ad Creative",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v19.0/act_{{$env.META_AD_ACCOUNT_ID}}/ads",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "facebookGraphApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "name", "value": "=Ad — {{$json.body.listing.title}}" },
+            { "name": "adset_id", "value": "={{$node['Meta: Create Ad Set'].json.id}}" },
+            { "name": "creative", "value": "={\"creative_id\":\"{{$node['Meta: Create Ad Creative'].json.id}}\"}" },
+            { "name": "status", "value": "ACTIVE" }
+          ]
+        }
+      },
+      "id": "create-ad",
+      "name": "Meta: Create Ad",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{$json.body.callback_url}}",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "campaign_id", "value": "={{$json.body.campaign_id}}" },
+            { "name": "meta_campaign_id", "value": "={{$node['Meta: Create Campaign'].json.id}}" },
+            { "name": "meta_adset_id", "value": "={{$node['Meta: Create Ad Set'].json.id}}" },
+            { "name": "meta_ad_id", "value": "={{$node['Meta: Create Ad'].json.id}}" },
+            { "name": "status", "value": "active" }
+          ]
+        }
+      },
+      "id": "callback-success",
+      "name": "Callback: Update LUPA PH API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"success\":true,\"meta_campaign_id\":\"{{$node['Meta: Create Campaign'].json.id}}\"}"
+      },
+      "id": "respond",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1560, 300]
+    },
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "hours", "hoursInterval": 24 }] }
+      },
+      "id": "daily-cron",
+      "name": "Daily Metrics Sync",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [240, 560]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.LUPAPH_API_URL}}/ads",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Authorization", "value": "=Bearer {{$env.LUPAPH_API_KEY}}" }]
+        }
+      },
+      "id": "get-active-campaigns",
+      "name": "Get Active Campaigns",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [460, 560]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "split-campaigns",
+      "name": "Split Campaigns",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [680, 560]
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v19.0/{{$json.meta_campaign_id}}/insights?fields=impressions,reach,clicks,spend&access_token={{$env.META_ACCESS_TOKEN}}"
+      },
+      "id": "fetch-insights",
+      "name": "Meta: Fetch Insights",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [900, 560]
+    },
+    {
+      "parameters": {
+        "url": "={{$env.LUPAPH_API_URL}}/ads/{{$json.id}}/sync-metrics",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "impressions", "value": "={{$node['Meta: Fetch Insights'].json.data[0].impressions ?? 0}}" },
+            { "name": "reach", "value": "={{$node['Meta: Fetch Insights'].json.data[0].reach ?? 0}}" },
+            { "name": "clicks", "value": "={{$node['Meta: Fetch Insights'].json.data[0].clicks ?? 0}}" },
+            { "name": "spent_php", "value": "={{($node['Meta: Fetch Insights'].json.data[0].spend ?? 0) * 56}}" }
+          ]
+        }
+      },
+      "id": "sync-metrics",
+      "name": "Sync Metrics to LUPA PH",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1120, 560]
+    }
+  ],
+  "connections": {
+    "Webhook: Create Campaign": { "main": [[{ "node": "Meta: Create Campaign", "type": "main", "index": 0 }]] },
+    "Meta: Create Campaign": { "main": [[{ "node": "Meta: Create Ad Set", "type": "main", "index": 0 }]] },
+    "Meta: Create Ad Set": { "main": [[{ "node": "Meta: Create Ad Creative", "type": "main", "index": 0 }]] },
+    "Meta: Create Ad Creative": { "main": [[{ "node": "Meta: Create Ad", "type": "main", "index": 0 }]] },
+    "Meta: Create Ad": { "main": [[{ "node": "Callback: Update LUPA PH API", "type": "main", "index": 0 }]] },
+    "Callback: Update LUPA PH API": { "main": [[{ "node": "Respond to Webhook", "type": "main", "index": 0 }]] },
+    "Daily Metrics Sync": { "main": [[{ "node": "Get Active Campaigns", "type": "main", "index": 0 }]] },
+    "Get Active Campaigns": { "main": [[{ "node": "Split Campaigns", "type": "main", "index": 0 }]] },
+    "Split Campaigns": { "main": [[{ "node": "Meta: Fetch Insights", "type": "main", "index": 0 }]] },
+    "Meta: Fetch Insights": { "main": [[{ "node": "Sync Metrics to LUPA PH", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}
