@@ -2,7 +2,13 @@ import { notFound } from 'next/navigation'
 import { Navbar } from '@/components/Navbar'
 import Link from 'next/link'
 
+const DEMO_BROKERS: Record<string, any> = {
+  'lupaph-realty': { id: 'd1', slug: 'lupaph-realty', name: 'LUPA PH Realty', verified_badge: true, office_address: 'BGC, Taguig City, Metro Manila', description: 'Premier OFW-focused real estate brokerage with blockchain-verified agents across the Philippines. Specializing in helping Filipinos abroad invest in their dream properties back home.', logo_url: null, cover_url: null, realtors: [{ id: 'd1', slug: 'maria-santos', verified_badge: true, users: { full_name: 'Maria Santos', avatar_url: null } }, { id: 'd5', slug: 'liza-flores', verified_badge: true, users: { full_name: 'Liza Flores', avatar_url: null } }], listings: [{ id: 'd1', title: 'Modern House & Lot in Bacoor Cavite', price_php: 3200000, city: 'Bacoor', province: 'Cavite', status: 'active', blockchain_verified: true, listing_photos: [{ url: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&q=80', is_primary: true }] }] },
+  'metro-realty-group': { id: 'd2', slug: 'metro-realty-group', name: 'Metro Realty Group', verified_badge: true, office_address: 'Ortigas Center, Pasig City', description: 'Specializing in Metro Manila condominiums and commercial properties for OFW investors. 15 years of trusted service.', logo_url: null, cover_url: null, realtors: [{ id: 'd2', slug: 'juan-dela-cruz', verified_badge: true, users: { full_name: 'Juan Dela Cruz', avatar_url: null } }], listings: [{ id: 'd2', title: 'Condo Unit in Cebu IT Park', price_php: 4500000, city: 'Cebu City', province: 'Cebu', status: 'active', blockchain_verified: true, listing_photos: [{ url: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&q=80', is_primary: true }] }] },
+}
+
 async function getBroker(slug: string) {
+  if (DEMO_BROKERS[slug]) return DEMO_BROKERS[slug]
   const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL ?? ''
   if (!apiUrl) return null
   try {
