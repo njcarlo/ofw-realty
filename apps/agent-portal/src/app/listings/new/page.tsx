@@ -2,6 +2,10 @@
 import { useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { AgentSidebar } from '@/components/AgentSidebar'
+import dynamic from 'next/dynamic'
+
+// Dynamic import to avoid SSR issues with MapLibre
+const MapPicker = dynamic(() => import('@/components/MapPicker').then(m => ({ default: m.MapPicker })), { ssr: false })
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -32,6 +36,8 @@ export default function NewListingPage() {
   const [city, setCity] = useState('')
   const [barangay, setBarangay] = useState('')
   const [address, setAddress] = useState('')
+  const [lat, setLat] = useState<number | null>(null)
+  const [lng, setLng] = useState<number | null>(null)
   const [lotArea, setLotArea] = useState('')
   const [blockNo, setBlockNo] = useState('')
   const [lotNo, setLotNo] = useState('')
@@ -76,6 +82,11 @@ export default function NewListingPage() {
       setTimeout(() => setToast(null), 4000)
       return
     }
+    if (!lat || !lng) {
+      setToast({ msg: 'Please pin the property location on the map.', type: 'error' })
+      setTimeout(() => setToast(null), 4000)
+      return
+    }
     setSubmitting(true)
     try {
       const { data: { session } } = await supabase.auth.getSession()
@@ -94,7 +105,8 @@ export default function NewListingPage() {
           lot_number: lotNo || undefined,
           tct_number: tctNumber || undefined,
           photo_urls: validPhotos,
-          lat: 14.5995, lng: 120.9842,
+          lat: lat!,
+          lng: lng!,
         }),
       })
       setSubmitted(true)
@@ -218,6 +230,14 @@ export default function NewListingPage() {
                     <label style={labelStyle}>Street Address</label>
                     <input value={address} onChange={e => setAddress(e.target.value)} placeholder="123 Main St" style={inputStyle} />
                   </div>
+                </div>
+                <div>
+                  <label style={{ ...labelStyle, marginBottom: 8 }}>Pin on Map *</label>
+                  <MapPicker
+                    lat={lat ?? undefined}
+                    lng={lng ?? undefined}
+                    onChange={(newLat, newLng) => { setLat(newLat); setLng(newLng) }}
+                  />
                 </div>
               </div>
             </div>

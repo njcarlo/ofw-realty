@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { Navbar } from '@/components/Navbar'
+import { MapPicker } from '@/components/MapPicker'
 import Link from 'next/link'
 
 const supabase = createClient(
@@ -40,6 +41,8 @@ export default function NewListingPage() {
   const [city, setCity] = useState('')
   const [barangay, setBarangay] = useState('')
   const [address, setAddress] = useState('')
+  const [lat, setLat] = useState<number | null>(null)
+  const [lng, setLng] = useState<number | null>(null)
   const [lotArea, setLotArea] = useState('')
   const [blockNo, setBlockNo] = useState('')
   const [lotNo, setLotNo] = useState('')
@@ -98,6 +101,10 @@ export default function NewListingPage() {
       setToast({ msg: 'Please fill in all required fields and add at least one photo.', type: 'error' })
       return
     }
+    if (!lat || !lng) {
+      setToast({ msg: 'Please pin your property location on the map (Step 2).', type: 'error' })
+      return
+    }
 
     setSubmitting(true)
     try {
@@ -123,12 +130,10 @@ export default function NewListingPage() {
           lot_number: lotNo || undefined,
           tct_number: tctNumber || undefined,
           photo_urls: validPhotos,
-          // Seller-specific: request agent representation
           request_agent: requestAgent,
           agent_note: agentNote || undefined,
-          // Placeholder GPS — in production use map picker
-          lat: 14.5995,
-          lng: 120.9842,
+          lat: lat!,
+          lng: lng!,
         }),
       })
 
@@ -276,8 +281,23 @@ export default function NewListingPage() {
                   <input value={address} onChange={e => setAddress(e.target.value)} placeholder="e.g. 123 Molino Blvd" style={inputStyle} />
                 </div>
               </div>
-              <div style={{ background: 'rgba(112,59,247,0.06)', border: '1px solid rgba(112,59,247,0.2)', borderRadius: 8, padding: '12px 16px', fontSize: 13, color: '#595959' }}>
-                📍 GPS coordinates will be auto-detected from your address. You can pin the exact location on the map after listing.
+
+              {/* Map Picker */}
+              <div>
+                <label style={{ ...labelStyle, marginBottom: 10 }}>Pin Property Location on Map *</label>
+                <MapPicker
+                  lat={lat ?? undefined}
+                  lng={lng ?? undefined}
+                  onChange={(newLat, newLng, detectedAddress) => {
+                    setLat(newLat)
+                    setLng(newLng)
+                    // Auto-fill address if detected from geocoder
+                    if (detectedAddress && !address) {
+                      const parts = detectedAddress.split(',')
+                      if (parts.length > 0 && !address) setAddress(parts[0].trim())
+                    }
+                  }}
+                />
               </div>
             </div>
           )}
