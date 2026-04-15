@@ -9,14 +9,14 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "14.2.0",
-    "react": "^18.3.0",
-    "react-dom": "^18.3.0",
-    "@supabase/supabase-js": "^2.43.0",
-    "@ofw-realty/ui": "*",
-    "@ofw-realty/auth": "*",
     "@ofw-realty/api-client": "*",
-    "@ofw-realty/utils": "*"
+    "@ofw-realty/auth": "*",
+    "@ofw-realty/ui": "*",
+    "@ofw-realty/utils": "*",
+    "@supabase/supabase-js": "^2.43.0",
+    "next": "14.2.35",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
   },
   "devDependencies": {
     "@types/node": "^20",
