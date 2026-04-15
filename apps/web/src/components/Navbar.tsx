@@ -8,6 +8,7 @@ import { DemoLoginPanel } from './DemoLoginPanel'
 const NAV_LINKS = [
   { href: '/', label: 'Home' },
   { href: '/map', label: 'Find Properties' },
+  { href: '/sell', label: 'Sell' },
   { href: '/agents', label: 'Agents' },
   { href: '/brokers', label: 'Brokerages' },
   { href: '/spa', label: 'SPA Guide' },

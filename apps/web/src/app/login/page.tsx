@@ -10,7 +10,8 @@ const supabase = createClient(
 
 const ROLES = [
   { value: 'buyer', label: 'Buyer', icon: '🏠', desc: 'Browse and purchase properties' },
-  { value: 'realtor', label: 'Agent', icon: '👤', desc: 'List and manage properties' },
+  { value: 'seller', label: 'Seller', icon: '🏷️', desc: 'List and sell your own property' },
+  { value: 'realtor', label: 'Agent', icon: '👤', desc: 'List and manage properties professionally' },
   { value: 'broker_admin', label: 'Broker', icon: '🏢', desc: 'Manage a brokerage and agents' },
 ]
 
@@ -18,7 +19,7 @@ const PORTAL_URLS: Record<string, string> = {
   realtor:      'https://ofw-realty-agent-portal.vercel.app',
   broker_admin: 'https://ofw-realty-broker-portal.vercel.app',
   buyer:        '/dashboard',
-  seller:       '/dashboard',
+  seller:       '/sell',
 }
 
 export default function LoginPage() {

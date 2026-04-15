@@ -51,6 +51,12 @@ export default function DashboardPage() {
         return
       }
 
+      // Redirect sellers to their dashboard
+      if (userRole === 'seller') {
+        window.location.href = '/sell'
+        return
+      }
+
       setChecking(false)
     }
 
@@ -85,22 +91,22 @@ export default function DashboardPage() {
       subtitle="Track your property journey — from inquiry to keys."
     >
       {/* Role-based portal links for agents/brokers who land here */}
-      {(role === 'realtor' || role === 'broker_admin') && (
+      {(role === 'realtor' || role === 'broker_admin' || role === 'seller') && (
         <div style={{ background: 'rgba(112,59,247,0.08)', border: '1px solid rgba(112,59,247,0.25)', borderRadius: 12, padding: '16px 20px', marginBottom: 28, display: 'flex', alignItems: 'center', gap: 14 }}>
-          <span style={{ fontSize: 24 }}>{role === 'realtor' ? '👤' : '🏢'}</span>
+          <span style={{ fontSize: 24 }}>{role === 'realtor' ? '👤' : role === 'broker_admin' ? '🏢' : '🏷️'}</span>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: '#fff', marginBottom: 2 }}>
-              You have a {role === 'realtor' ? 'Agent' : 'Broker'} account
+              You have a {role === 'realtor' ? 'Agent' : role === 'broker_admin' ? 'Broker' : 'Seller'} account
             </div>
             <div style={{ fontSize: 13, color: '#595959' }}>
-              Your dedicated portal has more tools for managing listings, leads, and commissions.
+              {role === 'seller' ? 'Manage your property listings and connect with agents.' : 'Your dedicated portal has more tools for managing listings, leads, and commissions.'}
             </div>
           </div>
           <a
-            href={PORTAL_URLS[role]}
+            href={role === 'seller' ? '/sell' : PORTAL_URLS[role]}
             style={{ background: '#703BF7', color: '#fff', borderRadius: 8, padding: '10px 18px', fontSize: 13, fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap', boxShadow: '0 0 20px rgba(112,59,247,0.3)' }}
           >
-            Go to {role === 'realtor' ? 'Agent' : 'Broker'} Portal →
+            {role === 'seller' ? 'Go to Seller Dashboard →' : `Go to ${role === 'realtor' ? 'Agent' : 'Broker'} Portal →`}
           </a>
         </div>
       )}
