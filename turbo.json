@@ -2,7 +2,18 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "dist/**"]
+      "outputs": [".next/**", "dist/**"],
+      "env": [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "NEXT_PUBLIC_API_URL",
+        "API_URL",
+        "NEXT_PUBLIC_MAPLIBRE_STYLE_URL",
+        "NEXT_PUBLIC_AGENT_PORTAL_URL",
+        "NEXT_PUBLIC_BROKER_PORTAL_URL",
+        "NODE_ENV"
+      ]
     },
     "dev": {
       "cache": false,

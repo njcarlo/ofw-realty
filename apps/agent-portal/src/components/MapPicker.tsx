@@ -7,7 +7,7 @@ interface Props {
   lat?: number
   lng?: number
   polygon?: GeoJSON.Polygon | null
-  onChange: (lat: number, lng: number, polygon?: GeoJSON.Polygon | null) => void
+  onChange: (lat: number, lng: number, polygon?: GeoJSON.Polygon | null, detectedAddress?: string) => void
 }
 
 const PHILIPPINES_CENTER: [number, number] = [122.5, 12.0]
