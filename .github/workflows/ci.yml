@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  build:
+    name: Build & Type Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Type check web app
+        run: npx tsc --noEmit
+        working-directory: apps/web
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder' }}
+          NEXT_PUBLIC_API_URL: 'https://ofw-realty-api-production.up.railway.app'
+
+      - name: Build web app
+        run: npx turbo build --filter=@ofw-realty/web --no-daemon
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder' }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'placeholder' }}
+          NEXT_PUBLIC_API_URL: 'https://ofw-realty-api-production.up.railway.app'
+          NEXT_PUBLIC_MAPLIBRE_STYLE_URL: 'https://tiles.openfreemap.org/styles/liberty'
+          NEXT_PUBLIC_AGENT_PORTAL_URL: 'https://ofw-realty-agent-portal.vercel.app'
+          NEXT_PUBLIC_BROKER_PORTAL_URL: 'https://ofw-realty-broker-portal.vercel.app'
