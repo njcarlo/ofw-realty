@@ -2,8 +2,11 @@
 import { useState, useEffect } from 'react'
 import { AgentSidebar } from '@/components/AgentSidebar'
 import { FacebookConnectBanner } from '@/components/FacebookConnectBanner'
+import Link from 'next/link'
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://ofw-realty-api-production.up.railway.app'
+// META_APP_ID must be set in Railway for OAuth to work
+const META_CONFIGURED = !!(process.env.NEXT_PUBLIC_META_APP_ID)
 
 const OFW_COUNTRIES = [
   { code: 'AE', label: '🇦🇪 UAE' },
@@ -128,12 +131,55 @@ export default function SocialPage() {
           </div>
         </div>
 
+        {/* Facebook connection banner */}
+        <div style={{ marginBottom: 24 }}>
+          {!META_CONFIGURED ? (
+            /* Setup guide when META_APP_ID not configured */
+            <div style={{ background: '#0D0D0D', border: '1px solid rgba(59,130,246,0.3)', borderRadius: 12, padding: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+                <div style={{ width: 40, height: 40, background: '#1877F2', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 18, flexShrink: 0 }}>f</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 6 }}>Connect Facebook to run ads & post listings</div>
+                  <div style={{ fontSize: 13, color: '#595959', marginBottom: 14, lineHeight: 1.6 }}>
+                    To enable Facebook Ads and organic posting, the platform admin needs to configure the Meta App credentials in the API server.
+                  </div>
+                  <div style={{ background: '#141414', border: '1px solid #1A1A1A', borderRadius: 8, padding: '12px 16px', marginBottom: 14 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: '#fff', marginBottom: 8 }}>Setup required (Admin):</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12, color: '#595959' }}>
+                      <div>1. Create a Meta App at <span style={{ color: '#703BF7' }}>developers.facebook.com</span></div>
+                      <div>2. Add <code style={{ color: '#10B981', background: '#0D0D0D', padding: '1px 6px', borderRadius: 4 }}>META_APP_ID</code> and <code style={{ color: '#10B981', background: '#0D0D0D', padding: '1px 6px', borderRadius: 4 }}>META_APP_SECRET</code> to Railway</div>
+                      <div>3. Add OAuth redirect URI: <code style={{ color: '#703BF7', background: '#0D0D0D', padding: '1px 6px', borderRadius: 4, fontSize: 11 }}>https://ofw-realty-api-production.up.railway.app/ads/oauth/callback</code></div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <a
+                      href="https://developers.facebook.com/apps"
+                      target="_blank"
+                      style={{ background: '#1877F2', color: '#fff', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}
+                    >
+                      Open Meta Developer Console →
+                    </a>
+                    <a
+                      href="https://github.com/njcarlo/ofw-realty/blob/master/docs/SOCIAL_MEDIA_SETUP.md"
+                      target="_blank"
+                      style={{ background: 'transparent', color: '#595959', border: '1px solid #1A1A1A', borderRadius: 8, padding: '8px 16px', fontSize: 13, textDecoration: 'none' }}
+                    >
+                      📖 Full Setup Guide
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <FacebookConnectBanner
+              onConnected={() => setFbConnected(true)}
+              onDisconnected={() => setFbConnected(false)}
+            />
+          )}
+        </div>
+
         {/* Organic Posts */}
         <div style={{ marginBottom: 32 }}>
-          <FacebookConnectBanner
-            onConnected={() => setFbConnected(true)}
-            onDisconnected={() => setFbConnected(false)}
-          />
           <h2 style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 16 }}>Organic Posts</h2>
           <div style={{ background: '#0D0D0D', border: '1px solid #1A1A1A', borderRadius: 12, overflow: 'hidden' }}>
             {POSTS.map((p, i) => (

@@ -51,9 +51,32 @@ export function MapPicker({ lat, lng, polygon, onChange }: Props) {
     if (!containerRef.current || mapRef.current) return
 
     import('maplibre-gl').then(({ default: maplibregl }) => {
+      const SATELLITE_STYLE = {
+        version: 8,
+        sources: {
+          'esri-satellite': {
+            type: 'raster',
+            tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+            tileSize: 256,
+            attribution: '© Esri, Maxar',
+            maxzoom: 19,
+          },
+          'esri-labels': {
+            type: 'raster',
+            tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}'],
+            tileSize: 256,
+            maxzoom: 19,
+          },
+        },
+        layers: [
+          { id: 'satellite', type: 'raster', source: 'esri-satellite' },
+          { id: 'labels', type: 'raster', source: 'esri-labels', paint: { 'raster-opacity': 0.85 } },
+        ],
+      }
+
       const map = new maplibregl.Map({
         container: containerRef.current!,
-        style: 'https://tiles.openfreemap.org/styles/liberty',
+        style: SATELLITE_STYLE as any,
         center: coords ? [coords.lng, coords.lat] : PHILIPPINES_CENTER,
         zoom: coords ? 16 : 6,
       })

@@ -5,7 +5,8 @@ import maplibregl from 'maplibre-gl'
 import { createClient } from '@supabase/supabase-js'
 import {
   PHILIPPINES_CENTER, PHILIPPINES_BOUNDS,
-  DEFAULT_STYLE_URL, HazardLayerType, HAZARD_LAYER_COLORS
+  DEFAULT_STYLE_URL, SATELLITE_STYLE,
+  HazardLayerType, HAZARD_LAYER_COLORS
 } from '@ofw-realty/map'
 import { CityTagBar } from './CityTagBar'
 import { ListingPanel } from './ListingPanel'
@@ -36,13 +37,14 @@ export function MapViewWithPanel() {
   const [selectedListing, setSelectedListing] = useState<any | null>(null)
   const [mapZoom, setMapZoom] = useState(6)
   const [mapBounds, setMapBounds] = useState<{ minLng: number; maxLng: number; minLat: number; maxLat: number } | null>(null)
+  const [mapStyle, setMapStyle] = useState<'satellite' | 'street'>('satellite')
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return
 
     map.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: DEFAULT_STYLE_URL,
+      style: SATELLITE_STYLE as any,
       center: PHILIPPINES_CENTER,
       zoom: 6,
       maxBounds: [
@@ -317,6 +319,27 @@ export function MapViewWithPanel() {
           background: '#0D0D0D', borderRadius: 12, padding: '12px 14px',
           border: '1px solid #1A1A1A', minWidth: 160,
         }}>
+          {/* Map style toggle */}
+          <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+            <button
+              onClick={() => {
+                setMapStyle('satellite')
+                map.current?.setStyle(SATELLITE_STYLE as any)
+              }}
+              style={{ flex: 1, padding: '5px 0', borderRadius: 6, border: `1px solid ${mapStyle === 'satellite' ? 'rgba(112,59,247,0.5)' : '#262626'}`, background: mapStyle === 'satellite' ? 'rgba(112,59,247,0.15)' : '#141414', color: mapStyle === 'satellite' ? '#703BF7' : '#595959', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+            >
+              🛰️ Satellite
+            </button>
+            <button
+              onClick={() => {
+                setMapStyle('street')
+                map.current?.setStyle(DEFAULT_STYLE_URL)
+              }}
+              style={{ flex: 1, padding: '5px 0', borderRadius: 6, border: `1px solid ${mapStyle === 'street' ? 'rgba(112,59,247,0.5)' : '#262626'}`, background: mapStyle === 'street' ? 'rgba(112,59,247,0.15)' : '#141414', color: mapStyle === 'street' ? '#703BF7' : '#595959', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+            >
+              🗺️ Street
+            </button>
+          </div>
           <button
             onClick={() => setShowLayers(v => !v)}
             style={{
