@@ -12,6 +12,7 @@ const NAV = [
   { icon: '📄', label: 'Documents', href: '/documents' },
   { icon: '🏆', label: 'Leaderboard', href: '/performance' },
   { icon: '🏢', label: 'Company Profile', href: '/profile' },
+  { icon: '🤝', label: 'Deal Rooms', href: '/deal-rooms' },
 ]
 
 export function BrokerSidebar() {

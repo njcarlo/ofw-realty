@@ -34,3 +34,36 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(propertyType ? DEMO_LISTINGS.filter(l => l.property_type === propertyType) : DEMO_LISTINGS)
   }
 }
+
+import { createClient } from '@supabase/supabase-js'
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json()
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+    const realtor_id = body.realtor_id || 'a1b2c3d4-0000-0000-0000-000000000002' 
+    const { request_agent, agent_note, ...dbPayload } = body
+
+    const { data, error } = await supabase
+      .from('listings')
+      .insert({ ...dbPayload, realtor_id, status: 'active' })
+      .select('id')
+      .single()
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+    if (body.photo_urls && Array.isArray(body.photo_urls) && body.photo_urls.length > 0) {
+      const photos = body.photo_urls.map((url: string, idx: number) => ({
+        listing_id: data.id, url, is_primary: idx === 0, sort_order: idx
+      }))
+      await supabase.from('listing_photos').insert(photos)
+    }
+
+    return NextResponse.json({ id: data.id, success: true }, { status: 201 })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}

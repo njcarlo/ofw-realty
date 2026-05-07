@@ -1,0 +1,8 @@
+{
+  "name": "lupaph-services",
+  "framework": "nextjs",
+  "regions": ["sin1"],
+  "installCommand": "cd ../.. && npm install",
+  "buildCommand": "cd ../.. && npx turbo build --filter=@ofw-realty/services-portal",
+  "outputDirectory": ".next"
+}

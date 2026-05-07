@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+export { deriveRoomKey, encrypt, decrypt } from './encryption'
+
 // ─── Listing Schemas ───────────────────────────────────────────
 export const PropertyTypeSchema = z.enum([
   'residential_lot', 'house_and_lot', 'condo', 'commercial', 'farm_lot'
