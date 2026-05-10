@@ -75,11 +75,25 @@ export default function NewListingPage() {
       const { data: { session } } = await supabase.auth.getSession()
       const userId = session?.user?.id ?? 'anonymous'
       const path = `${userId}/listing_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
-      const { error } = await supabase.storage.from('listing-photos').upload(path, file, { upsert: true })
-      if (error) throw error
-      const { data } = supabase.storage.from('listing-photos').getPublicUrl(path)
+      
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('path', path)
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!res.ok) {
+        const errData = await res.json()
+        throw new Error(errData.error || 'Upload failed')
+      }
+
+      const { publicUrl } = await res.json()
+      
       const updated = [...photoUrls]
-      updated[index] = data.publicUrl
+      updated[index] = publicUrl
       setPhotoUrls(updated)
     } catch (err: any) {
       setToast({ msg: `Upload failed: ${err.message}`, type: 'error' })
@@ -109,13 +123,10 @@ export default function NewListingPage() {
 
     setSubmitting(true)
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-
-      const res = await fetch(`${API}/listings`, {
+      const res = await fetch('/api/listings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
         },
         body: JSON.stringify({
           property_type: propertyType,

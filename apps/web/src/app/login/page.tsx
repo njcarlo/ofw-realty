@@ -13,11 +13,13 @@ const ROLES = [
   { value: 'seller', label: 'Seller', icon: '🏷️', desc: 'List and sell your own property' },
   { value: 'realtor', label: 'Agent', icon: '👤', desc: 'List and manage properties professionally' },
   { value: 'broker_admin', label: 'Broker', icon: '🏢', desc: 'Manage a brokerage and agents' },
+  { value: 'developer', label: 'Developer', icon: '🏗️', desc: 'Manage real estate development projects' },
 ]
 
 const PORTAL_URLS: Record<string, string> = {
-  realtor:      'https://ofw-realty-agent-portal.vercel.app',
-  broker_admin: 'https://ofw-realty-broker-portal.vercel.app',
+  realtor:      process.env.NEXT_PUBLIC_AGENT_PORTAL_URL ?? 'http://localhost:3002',
+  broker_admin: process.env.NEXT_PUBLIC_BROKER_PORTAL_URL ?? 'http://localhost:3003',
+  developer:    process.env.NEXT_PUBLIC_DEVELOPER_PORTAL_URL ?? 'http://localhost:3005',
   buyer:        '/dashboard',
   seller:       '/sell',
 }

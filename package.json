@@ -9,12 +9,14 @@
   ],
   "scripts": {
     "build": "turbo build",
-    "dev": "node scripts/kill-ports.js && turbo dev --filter=@ofw-realty/web --filter=@ofw-realty/agent-portal --filter=@ofw-realty/broker-portal --filter=@ofw-realty/api",
+    "dev": "node scripts/kill-ports.js && turbo dev --filter=@ofw-realty/web --filter=@ofw-realty/agent-portal --filter=@ofw-realty/broker-portal --filter=@ofw-realty/developer-portal --filter=@ofw-realty/services-portal --filter=@ofw-realty/ai-concierge --filter=@ofw-realty/b2b-network --filter=@ofw-realty/api",
     "kill": "node scripts/kill-ports.js",
     "dev:all": "node scripts/kill-ports.js && turbo dev",
     "dev:web": "turbo dev --filter=@ofw-realty/web",
     "dev:agent": "turbo dev --filter=@ofw-realty/agent-portal",
     "dev:broker": "turbo dev --filter=@ofw-realty/broker-portal",
+    "dev:developer": "turbo dev --filter=@ofw-realty/developer-portal",
+    "dev:services": "turbo dev --filter=@ofw-realty/services-portal",
     "dev:api": "turbo dev --filter=@ofw-realty/api",
     "lint": "turbo lint",
     "test": "turbo test"
