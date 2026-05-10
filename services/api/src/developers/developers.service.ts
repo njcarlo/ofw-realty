@@ -15,7 +15,7 @@ export class DevelopersService {
   async register(dto: RegisterDeveloperDto) {
     // Check for duplicate email
     const { data: existing } = await this.supabase.admin.auth.admin.listUsers()
-    const dup = existing?.users?.find((u) => u.email === dto.email)
+    const dup = (existing?.users ?? []).find((u: any) => u.email === dto.email)
     if (dup) throw new ConflictException({ code: 'email_already_registered' })
 
     // Create Supabase auth user with developer role
