@@ -117,6 +117,9 @@ export default function ListahanCallAgent() {
   }, [])
 
   const speak = useCallback(async (text: string) => {
+    // Stop listening before speaking — prevents feedback loop
+    recognitionRef.current?.stop()
+    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
     setCallState('speaking')
     try {
       if (useBrowserTTS) {
@@ -203,34 +206,67 @@ export default function ListahanCallAgent() {
     await speak(fullText)
   }, [speak])
 
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   const startListening = useCallback(() => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
     if (!SR) { setCallState('connected'); return }
 
     const recognition = new SR()
-    recognition.lang = 'fil-PH'
+    // en-PH handles Taglish better than fil-PH in Chrome
+    recognition.lang = 'en-PH'
     recognition.interimResults = true
-    recognition.continuous = false
+    recognition.continuous = true          // keep mic open — don't restart on every pause
+    recognition.maxAlternatives = 1
     recognitionRef.current = recognition
+
+    let accumulated = ''                   // build up the full sentence
 
     recognition.onstart = () => { setCallState('listening') }
 
     recognition.onresult = (e: any) => {
-      const interim = Array.from(e.results).map((r: any) => r[0].transcript).join('')
-      setTranscript(interim)
-      if (e.results[e.results.length - 1].isFinal) {
-        const final = e.results[e.results.length - 1][0].transcript
-        recognition.stop()
-        setMessages(prev => { sendMessage(final, prev); return prev })
+      // Collect all results so far
+      let interim = ''
+      for (let i = 0; i < e.results.length; i++) {
+        const result = e.results[i]
+        if (result.isFinal) {
+          accumulated += result[0].transcript + ' '
+        } else {
+          interim = result[0].transcript
+        }
       }
+      setTranscript((accumulated + interim).trim())
+
+      // Reset silence timer on every new speech
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
+
+      // After 1.5s of silence, send what we have
+      silenceTimerRef.current = setTimeout(() => {
+        const finalText = accumulated.trim() || interim.trim()
+        if (finalText.length > 1) {
+          recognition.stop()
+          accumulated = ''
+          setMessages(prev => { sendMessage(finalText, prev); return prev })
+        }
+      }, 1500)
     }
 
     recognition.onerror = (e: any) => {
-      if (e.error === 'no-speech') setTimeout(() => startListening(), 1500)
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
+      // Only restart on no-speech — ignore other errors silently
+      if (e.error === 'no-speech') {
+        recognition.stop()
+        setTimeout(() => startListening(), 500)
+      }
     }
 
     recognition.onend = () => {
-      setCallState(s => { if (s === 'listening') setTimeout(() => startListening(), 800); return s })
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
+      // Only auto-restart if still in listening state (not thinking/speaking)
+      setCallState(s => {
+        if (s === 'listening') setTimeout(() => startListening(), 300)
+        return s
+      })
     }
 
     recognition.start()
@@ -254,6 +290,7 @@ export default function ListahanCallAgent() {
     recognitionRef.current?.stop()
     audioRef.current?.pause()
     window.speechSynthesis?.cancel()
+    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
     setCallState('idle')
     setTranscript('')
   }
