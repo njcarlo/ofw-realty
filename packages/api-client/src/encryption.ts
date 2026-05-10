@@ -56,7 +56,7 @@ export async function deriveRoomKey(
   const secretBytes = base64ToBytes(roomSecret)
   const keyMaterial = await subtle.importKey(
     'raw',
-    secretBytes,
+    secretBytes.buffer.slice(secretBytes.byteOffset, secretBytes.byteOffset + secretBytes.byteLength) as ArrayBuffer,
     { name: 'HKDF' },
     false,
     ['deriveKey'],
