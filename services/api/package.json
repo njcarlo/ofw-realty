@@ -2,6 +2,9 @@
   "name": "@ofw-realty/api",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "nest start --watch",
     "build": "nest build",
