@@ -279,7 +279,7 @@ export default function ListahanCallAgent() {
     await new Promise(r => setTimeout(r, 2000))
     setCallState('connected')
 
-    const greeting = 'Hello po! Listahan AI ito. Kumusta? Paano kita matutulungan ngayon?'
+    const greeting = 'Good day po! Listahan AI ito — ang inyong real estate concierge. Before we begin, anong language po ang mas komportable sa inyo — English, Filipino, o Taglish?'
     const welcomeMsg: Message = { id: 'welcome', role: 'assistant', content: greeting }
     setMessages([welcomeMsg])
     await speak(greeting)
