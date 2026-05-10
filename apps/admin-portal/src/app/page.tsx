@@ -1,171 +1,224 @@
+import { AdminSidebar } from '@/components/AdminSidebar'
+import { supabaseAdmin } from '@/lib/supabase'
 import Link from 'next/link'
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL ?? 'https://ofw-realty-api-production.up.railway.app'
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://ofw-realty-api-production.up.railway.app'
 
-const DEMO_PENDING = [
-  { id: 'd1', doc_type: 'PRC License', doc_number: 1, owner_id: 'agent-001', owner_name: 'Maria Santos', owner_type: 'realtor', status: 'submitted', created_at: new Date(Date.now() - 2 * 3600000).toISOString() },
-  { id: 'd2', doc_type: 'Valid ID', doc_number: 2, owner_id: 'agent-001', owner_name: 'Maria Santos', owner_type: 'realtor', status: 'submitted', created_at: new Date(Date.now() - 2 * 3600000).toISOString() },
-  { id: 'd3', doc_type: 'NBI Clearance', doc_number: 7, owner_id: 'agent-002', owner_name: 'Juan Dela Cruz', owner_type: 'realtor', status: 'submitted', created_at: new Date(Date.now() - 24 * 3600000).toISOString() },
-]
+function StatCard({ label, value, sub, color, href }: { label: string; value: string | number; sub?: string; color: string; href?: string }) {
+  const content = (
+    <div style={{ background: '#0D0D0D', border: `1px solid ${color}20`, borderRadius: 12, padding: '18px 20px', transition: 'border-color 0.15s' }}
+      onMouseEnter={e => href && ((e.currentTarget as HTMLElement).style.borderColor = `${color}50`)}
+      onMouseLeave={e => href && ((e.currentTarget as HTMLElement).style.borderColor = `${color}20`)}
+    >
+      <div style={{ fontSize: 28, fontWeight: 800, color, marginBottom: 4 }}>{value}</div>
+      <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', marginBottom: 2 }}>{label}</div>
+      {sub && <div style={{ fontSize: 11, color: '#595959' }}>{sub}</div>}
+    </div>
+  )
+  return href ? <Link href={href}>{content}</Link> : content
+}
 
-async function getPendingDocs() {
+function SectionHeader({ title, sub, href }: { title: string; sub: string; href?: string }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 14 }}>
+      <div>
+        <div style={{ fontSize: 16, fontWeight: 700, color: '#fff' }}>{title}</div>
+        <div style={{ fontSize: 12, color: '#595959', marginTop: 2 }}>{sub}</div>
+      </div>
+      {href && <Link href={href} style={{ fontSize: 12, color: '#703BF7' }}>View all →</Link>}
+    </div>
+  )
+}
+
+async function getStats() {
+  const safeCount = async (query: any) => {
+    try { const r = await query; return r.count ?? 0 } catch { return 0 }
+  }
+
+  const [
+    totalUsers, totalListings, activeListings, pendingDocs,
+    totalBrokers, totalAgents, openRequests, b2bProfiles,
+    b2bPosts, dealRooms, developers,
+  ] = await Promise.all([
+    safeCount(supabaseAdmin.from('users').select('*', { count: 'exact', head: true })),
+    safeCount(supabaseAdmin.from('listings').select('*', { count: 'exact', head: true })),
+    safeCount(supabaseAdmin.from('listings').select('*', { count: 'exact', head: true }).eq('status', 'active')),
+    safeCount(supabaseAdmin.from('documents').select('*', { count: 'exact', head: true }).eq('status', 'submitted')),
+    safeCount(supabaseAdmin.from('users').select('*', { count: 'exact', head: true }).eq('role', 'broker_admin')),
+    safeCount(supabaseAdmin.from('users').select('*', { count: 'exact', head: true }).eq('role', 'realtor')),
+    safeCount(supabaseAdmin.from('service_requests').select('*', { count: 'exact', head: true }).eq('status', 'open')),
+    safeCount(supabaseAdmin.from('b2b_profiles').select('*', { count: 'exact', head: true })),
+    safeCount(supabaseAdmin.from('b2b_posts').select('*', { count: 'exact', head: true })),
+    safeCount(supabaseAdmin.from('negotiation_rooms').select('*', { count: 'exact', head: true })),
+    safeCount(supabaseAdmin.from('developer_profiles').select('*', { count: 'exact', head: true })),
+  ])
+
+  return { totalUsers, totalListings, activeListings, pendingDocs, totalBrokers, totalAgents, openRequests, b2bProfiles, b2bPosts, dealRooms, developers }
+}
+
+async function getRecentActivity() {
+  const [users, listings] = await Promise.all([
+    supabaseAdmin.from('users').select('id, email, full_name, role, created_at').order('created_at', { ascending: false }).limit(5),
+    supabaseAdmin.from('listings').select('id, title, status, city, province, created_at').order('created_at', { ascending: false }).limit(5),
+  ])
+  let pendingDocsList: any[] = []
   try {
-    const res = await fetch(`${API}/documents/pending`, { cache: 'no-store' })
-    if (res.ok) {
-      const data = await res.json()
-      return data.length > 0 ? data : DEMO_PENDING
-    }
+    const { data } = await supabaseAdmin.from('documents').select('id, doc_type, status, owner_id, created_at').eq('status', 'submitted').order('created_at', { ascending: false }).limit(5)
+    pendingDocsList = data ?? []
   } catch {}
-  return DEMO_PENDING
+  return { recentUsers: users.data ?? [], recentListings: listings.data ?? [], pendingDocsList }
 }
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime()
-  const hrs = Math.floor(diff / 3600000)
-  if (hrs < 24) return `${hrs}h ago`
-  return `${Math.floor(hrs / 24)}d ago`
+  const m = Math.floor(diff / 60000)
+  if (m < 60) return `${m}m ago`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `${h}h ago`
+  return `${Math.floor(h / 24)}d ago`
+}
+
+const ROLE_COLORS: Record<string, string> = {
+  buyer: '#10B981', seller: '#06B6D4', realtor: '#703BF7',
+  broker_admin: '#F59E0B', developer: '#8B5CF6', admin: '#EF4444',
 }
 
 export default async function AdminDashboard() {
-  const pendingDocs = await getPendingDocs()
+  const [stats, activity] = await Promise.all([getStats(), getRecentActivity()])
 
-  const grouped = pendingDocs.reduce((acc: any, doc: any) => {
-    const key = doc.owner_id
-    if (!acc[key]) acc[key] = { name: doc.owner_name ?? doc.owner_id, type: doc.owner_type, docs: [] }
-    acc[key].docs.push(doc)
-    return acc
-  }, {})
+  const portals = [
+    { name: 'Web Marketplace', url: process.env.NEXT_PUBLIC_WEB_URL ?? 'http://localhost:3000', icon: '🌐', color: '#10B981', desc: 'Public listings & buyer portal' },
+    { name: 'Agent Portal', url: process.env.NEXT_PUBLIC_AGENT_PORTAL_URL ?? 'http://localhost:3002', icon: '👤', color: '#703BF7', desc: 'Agent dashboard & listings' },
+    { name: 'Broker Portal', url: process.env.NEXT_PUBLIC_BROKER_PORTAL_URL ?? 'http://localhost:3003', icon: '🏢', color: '#F59E0B', desc: 'Brokerage management' },
+    { name: 'Developer Portal', url: process.env.NEXT_PUBLIC_DEVELOPER_PORTAL_URL ?? 'http://localhost:3005', icon: '🏗️', color: '#8B5CF6', desc: 'Project & unit management' },
+    { name: 'Services Portal', url: process.env.NEXT_PUBLIC_SERVICES_PORTAL_URL ?? 'http://localhost:3006', icon: '🛠️', color: '#06B6D4', desc: 'Real estate services marketplace' },
+    { name: 'AI Concierge', url: 'http://localhost:3007', icon: '🤖', color: '#EC4899', desc: 'Listahan voice AI assistant' },
+    { name: 'B2B Network', url: 'http://localhost:3008', icon: '🤝', color: '#F97316', desc: 'Broker networking platform' },
+  ]
 
   return (
-    <div style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: "'Inter', system-ui, sans-serif", padding: 32 }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-            <div style={{ width: 36, height: 36, background: 'linear-gradient(135deg, #703BF7, #9B6DFF)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>🏠</div>
-            <span style={{ fontSize: 20, fontWeight: 800, color: '#fff' }}>LUPA <span style={{ color: '#703BF7' }}>PH</span> Admin</span>
-          </div>
-          <p style={{ fontSize: 14, color: '#595959', margin: 0 }}>Agent & Broker Verification Dashboard</p>
-        </div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <div style={{ background: '#0D0D0D', border: '1px solid #1A1A1A', borderRadius: 10, padding: '10px 16px', textAlign: 'center' }}>
-            <div style={{ fontSize: 22, fontWeight: 800, color: '#F59E0B' }}>{pendingDocs.length}</div>
-            <div style={{ fontSize: 11, color: '#595959' }}>Pending Docs</div>
-          </div>
-          <div style={{ background: '#0D0D0D', border: '1px solid #1A1A1A', borderRadius: 10, padding: '10px 16px', textAlign: 'center' }}>
-            <div style={{ fontSize: 22, fontWeight: 800, color: '#703BF7' }}>{Object.keys(grouped).length}</div>
-            <div style={{ fontSize: 11, color: '#595959' }}>Agents Pending</div>
-          </div>
-        </div>
-      </div>
+    <div style={{ display: 'flex', height: '100vh', background: '#000', fontFamily: 'Inter, sans-serif', color: '#fff' }}>
+      <AdminSidebar />
+      <main style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
 
-      {/* How verification works */}
-      <div style={{ background: 'rgba(112,59,247,0.06)', border: '1px solid rgba(112,59,247,0.2)', borderRadius: 12, padding: '16px 20px', marginBottom: 28 }}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: '#703BF7', marginBottom: 8 }}>📋 Verification Process</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, fontSize: 13, color: '#595959' }}>
-          {[
-            { step: '1', label: 'Agent registers', desc: 'Creates account with role: Agent' },
-            { step: '2', label: 'Uploads 9 docs', desc: 'PRC, ID, NBI, DTI, etc.' },
-            { step: '3', label: 'Admin reviews', desc: 'Approve or reject each doc' },
-            { step: '4', label: 'Badge awarded', desc: 'All 9 approved → Verified ✓' },
-          ].map(s => (
-            <div key={s.step} style={{ background: '#0D0D0D', borderRadius: 8, padding: '12px 14px' }}>
-              <div style={{ fontSize: 18, fontWeight: 800, color: '#703BF7', marginBottom: 4 }}>{s.step}</div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', marginBottom: 2 }}>{s.label}</div>
-              <div style={{ fontSize: 12, color: '#595959' }}>{s.desc}</div>
-            </div>
-          ))}
+        {/* Header */}
+        <div style={{ marginBottom: 28 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: '#fff', margin: 0 }}>Admin Dashboard</h1>
+          <p style={{ fontSize: 14, color: '#595959', marginTop: 4 }}>Central monitoring for all LUPA PH apps</p>
         </div>
-      </div>
 
-      {/* Pending reviews grouped by agent */}
-      <div style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 16 }}>
-        Pending Document Reviews
-        {pendingDocs.length > 0 && (
-          <span style={{ marginLeft: 10, background: 'rgba(239,68,68,0.15)', color: '#EF4444', fontSize: 12, fontWeight: 600, padding: '3px 8px', borderRadius: 99 }}>
-            {pendingDocs.length} pending
-          </span>
-        )}
-      </div>
-
-      {Object.keys(grouped).length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px 0', color: '#595959' }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
-          <div style={{ fontSize: 16, fontWeight: 600, color: '#999' }}>All caught up!</div>
-          <div style={{ fontSize: 13, marginTop: 4 }}>No pending document reviews</div>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {Object.entries(grouped).map(([ownerId, agent]: any) => (
-            <div key={ownerId} style={{ background: '#0D0D0D', border: '1px solid #1A1A1A', borderRadius: 12, overflow: 'hidden' }}>
-              {/* Agent header */}
-              <div style={{ padding: '16px 20px', borderBottom: '1px solid #141414', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(112,59,247,0.1)', border: '1px solid rgba(112,59,247,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
-                    {agent.type === 'realtor' ? '👤' : '🏢'}
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>{agent.name}</div>
-                    <div style={{ fontSize: 12, color: '#595959', textTransform: 'capitalize' }}>{agent.type} · {agent.docs.length} document{agent.docs.length !== 1 ? 's' : ''} pending</div>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <span style={{ fontSize: 12, color: '#595959' }}>
-                    {agent.docs.length}/9 docs submitted
-                  </span>
-                  <div style={{ background: '#141414', borderRadius: 99, height: 6, width: 80, overflow: 'hidden', alignSelf: 'center' }}>
-                    <div style={{ width: `${(agent.docs.length / 9) * 100}%`, height: '100%', background: '#703BF7', borderRadius: 99 }} />
-                  </div>
-                </div>
+        {/* Pending alert */}
+        {stats.pendingDocs > 0 && (
+          <Link href="/verifications" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 10, padding: '12px 18px', marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 18 }}>🚨</span>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#EF4444' }}>{stats.pendingDocs} document{stats.pendingDocs !== 1 ? 's' : ''} pending review</div>
+                <div style={{ fontSize: 12, color: '#595959' }}>Agents and brokers waiting for verification</div>
               </div>
+            </div>
+            <span style={{ fontSize: 12, color: '#EF4444', fontWeight: 600 }}>Review Now →</span>
+          </Link>
+        )}
 
-              {/* Documents */}
-              {agent.docs.map((doc: any, i: number) => (
-                <div key={doc.id} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px', borderBottom: i < agent.docs.length - 1 ? '1px solid #141414' : 'none' }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>
-                    📄
+        {/* KPI grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 28 }}>
+          <StatCard label="Total Users" value={stats.totalUsers} sub="All roles" color="#703BF7" href="/users" />
+          <StatCard label="Active Listings" value={stats.activeListings} sub={`${stats.totalListings} total`} color="#10B981" href="/listings" />
+          <StatCard label="Pending Docs" value={stats.pendingDocs} sub="Awaiting review" color="#EF4444" href="/verifications" />
+          <StatCard label="Deal Rooms" value={stats.dealRooms} sub="Negotiations" color="#F59E0B" href="/deal-rooms" />
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 32 }}>
+          <StatCard label="Brokers" value={stats.totalBrokers} color="#F59E0B" href="/brokerages" />
+          <StatCard label="Agents" value={stats.totalAgents} color="#703BF7" href="/users" />
+          <StatCard label="B2B Profiles" value={stats.b2bProfiles} sub={`${stats.b2bPosts} posts`} color="#F97316" href="/b2b" />
+          <StatCard label="Service Requests" value={stats.openRequests} sub="Open" color="#06B6D4" href="/services" />
+        </div>
+
+        {/* 3-column activity */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20, marginBottom: 32 }}>
+
+          {/* Recent users */}
+          <div style={{ background: '#0D0D0D', border: '1px solid #1A1A1A', borderRadius: 12, padding: 18 }}>
+            <SectionHeader title="Recent Signups" sub="Latest registered users" href="/users" />
+            {activity.recentUsers.length === 0
+              ? <div style={{ fontSize: 13, color: '#595959', padding: '12px 0' }}>No users yet</div>
+              : activity.recentUsers.map(u => (
+                <div key={u.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid #141414' }}>
+                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: `${ROLE_COLORS[u.role] ?? '#595959'}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>
+                    {u.role === 'realtor' ? '👤' : u.role === 'broker_admin' ? '🏢' : u.role === 'buyer' ? '🏠' : '👤'}
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>Doc #{doc.doc_number}: {doc.doc_type}</div>
-                    <div style={{ fontSize: 12, color: '#595959', marginTop: 2 }}>Submitted {timeAgo(doc.created_at)}</div>
-                  </div>
-                  {doc.file_url && doc.file_url !== '#' && (
-                    <a href={doc.file_url} target="_blank" style={{ fontSize: 12, color: '#703BF7', textDecoration: 'none', border: '1px solid rgba(112,59,247,0.3)', borderRadius: 6, padding: '4px 10px' }}>
-                      View File
-                    </a>
-                  )}
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <a
-                      href={`/api/documents/${doc.id}/approve`}
-                      style={{ background: 'rgba(16,185,129,0.1)', color: '#10B981', fontSize: 12, fontWeight: 600, padding: '6px 14px', borderRadius: 8, textDecoration: 'none', border: '1px solid rgba(16,185,129,0.3)' }}
-                    >
-                      ✓ Approve
-                    </a>
-                    <a
-                      href={`/api/documents/${doc.id}/reject`}
-                      style={{ background: 'rgba(239,68,68,0.1)', color: '#EF4444', fontSize: 12, fontWeight: 600, padding: '6px 14px', borderRadius: 8, textDecoration: 'none', border: '1px solid rgba(239,68,68,0.3)' }}
-                    >
-                      ✗ Reject
-                    </a>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.full_name ?? u.email}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 10, color: ROLE_COLORS[u.role] ?? '#595959', fontWeight: 600, textTransform: 'capitalize' }}>{u.role?.replace('_', ' ')}</span>
+                      <span style={{ fontSize: 10, color: '#333' }}>· {timeAgo(u.created_at)}</span>
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      )}
+              ))
+            }
+          </div>
 
-      {/* Quick guide */}
-      <div style={{ marginTop: 32, background: '#0D0D0D', border: '1px solid #1A1A1A', borderRadius: 12, padding: 20 }}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: '#fff', marginBottom: 12 }}>📌 Required Documents (9 total)</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-          {['PRC License', 'Valid Government ID', 'NBI Clearance', 'DTI/SEC Registration', 'BIR Certificate', 'Mayor\'s Permit', 'HLURB/DHSUD License', 'Proof of Address', 'Professional Tax Receipt'].map((doc, i) => (
-            <div key={doc} style={{ fontSize: 12, color: '#595959', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ color: '#703BF7', fontWeight: 700 }}>{i + 1}.</span> {doc}
-            </div>
-          ))}
+          {/* Recent listings */}
+          <div style={{ background: '#0D0D0D', border: '1px solid #1A1A1A', borderRadius: 12, padding: 18 }}>
+            <SectionHeader title="Recent Listings" sub="Latest property submissions" href="/listings" />
+            {activity.recentListings.length === 0
+              ? <div style={{ fontSize: 13, color: '#595959', padding: '12px 0' }}>No listings yet</div>
+              : activity.recentListings.map(l => (
+                <div key={l.id} style={{ padding: '8px 0', borderBottom: '1px solid #141414' }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 2 }}>{l.title}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 10, color: l.status === 'active' ? '#10B981' : '#F59E0B', fontWeight: 600, textTransform: 'capitalize' }}>{l.status}</span>
+                    <span style={{ fontSize: 10, color: '#595959' }}>· {l.city}, {l.province}</span>
+                    <span style={{ fontSize: 10, color: '#333', marginLeft: 'auto' }}>{timeAgo(l.created_at)}</span>
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+
+          {/* Pending verifications */}
+          <div style={{ background: '#0D0D0D', border: '1px solid #1A1A1A', borderRadius: 12, padding: 18 }}>
+            <SectionHeader title="Pending Verifications" sub="Documents awaiting review" href="/verifications" />
+            {activity.pendingDocsList.length === 0
+              ? <div style={{ fontSize: 13, color: '#10B981', padding: '12px 0' }}>✓ All clear — no pending docs</div>
+              : activity.pendingDocsList.map(d => (
+                <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid #141414' }}>
+                  <span style={{ fontSize: 18 }}>📄</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: '#fff' }}>{d.doc_type}</div>
+                    <div style={{ fontSize: 10, color: '#595959' }}>{timeAgo(d.created_at)}</div>
+                  </div>
+                  <Link href="/verifications" style={{ fontSize: 10, color: '#703BF7', border: '1px solid rgba(112,59,247,0.3)', borderRadius: 5, padding: '3px 7px' }}>Review</Link>
+                </div>
+              ))
+            }
+          </div>
         </div>
-      </div>
+
+        {/* Portal status grid */}
+        <div style={{ marginBottom: 8 }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 4 }}>All Portals</div>
+          <div style={{ fontSize: 12, color: '#595959', marginBottom: 16 }}>Quick access to all LUPA PH applications</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+            {portals.map(p => (
+              <a key={p.name} href={p.url} target="_blank" rel="noopener noreferrer"
+                style={{ background: '#0D0D0D', border: `1px solid ${p.color}20`, borderRadius: 12, padding: '16px 18px', transition: 'border-color 0.15s, transform 0.15s' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = `${p.color}50`; (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = `${p.color}20`; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)' }}
+              >
+                <div style={{ fontSize: 24, marginBottom: 8 }}>{p.icon}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 3 }}>{p.name}</div>
+                <div style={{ fontSize: 11, color: '#595959', marginBottom: 8 }}>{p.desc}</div>
+                <div style={{ fontSize: 10, color: p.color, fontWeight: 600 }}>Open ↗</div>
+              </a>
+            ))}
+          </div>
+        </div>
+
+      </main>
     </div>
   )
 }
