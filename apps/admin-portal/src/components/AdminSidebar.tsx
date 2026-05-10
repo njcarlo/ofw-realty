@@ -1,78 +1,90 @@
 'use client'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const NAV = [
-  { icon: '📋', label: 'Verifications',  href: '/' },
-  { icon: '👥', label: 'Users',          href: '/users' },
-  { icon: '🏠', label: 'Listings',       href: '/listings' },
-  { icon: '🏢', label: 'Brokerages',     href: '/brokerages' },
-  { icon: '🤝', label: 'Deal Rooms',     href: '/deal-rooms' },
-  { icon: '📊', label: 'Inquiries',      href: '/inquiries' },
+  { section: 'Overview', items: [
+    { icon: '📊', label: 'Dashboard',      href: '/' },
+  ]},
+  { section: 'Users & Verification', items: [
+    { icon: '👥', label: 'All Users',       href: '/users' },
+    { icon: '🔐', label: 'Verifications',   href: '/verifications' },
+    { icon: '🏢', label: 'Brokerages',      href: '/brokerages' },
+  ]},
+  { section: 'Marketplace', items: [
+    { icon: '🏘️', label: 'Listings',        href: '/listings' },
+    { icon: '💬', label: 'Inquiries',       href: '/inquiries' },
+    { icon: '🤝', label: 'Deal Rooms',      href: '/deal-rooms' },
+  ]},
+  { section: 'Portals', items: [
+    { icon: '🏗️', label: 'Developers',      href: '/developers' },
+    { icon: '🛠️', label: 'Services',        href: '/services' },
+    { icon: '🌐', label: 'B2B Network',     href: '/b2b' },
+  ]},
+  { section: 'System', items: [
+    { icon: '🤖', label: 'AI Concierge',    href: '/ai' },
+    { icon: '⚙️', label: 'Settings',        href: '/settings' },
+  ]},
+]
+
+const PORTAL_LINKS = [
+  { label: 'Web',        href: process.env.NEXT_PUBLIC_WEB_URL ?? 'http://localhost:3000' },
+  { label: 'Agent',      href: process.env.NEXT_PUBLIC_AGENT_PORTAL_URL ?? 'http://localhost:3002' },
+  { label: 'Broker',     href: process.env.NEXT_PUBLIC_BROKER_PORTAL_URL ?? 'http://localhost:3003' },
+  { label: 'Developer',  href: process.env.NEXT_PUBLIC_DEVELOPER_PORTAL_URL ?? 'http://localhost:3005' },
+  { label: 'Services',   href: process.env.NEXT_PUBLIC_SERVICES_PORTAL_URL ?? 'http://localhost:3006' },
+  { label: 'AI',         href: 'http://localhost:3007' },
+  { label: 'B2B',        href: 'http://localhost:3008' },
 ]
 
 export function AdminSidebar() {
   const pathname = usePathname()
   return (
-    <aside style={{
-      width: 240,
-      background: '#0D0D0D',
-      borderRight: '1px solid #1A1A1A',
-      padding: '24px 0',
-      display: 'flex',
-      flexDirection: 'column',
-      flexShrink: 0,
-      height: '100vh',
-      position: 'sticky',
-      top: 0,
-    }}>
-      <div style={{ padding: '0 20px 24px', borderBottom: '1px solid #1A1A1A' }}>
-        <div style={{ fontSize: 20, fontWeight: 800, color: '#fff' }}>
-          LUPA <span style={{ color: '#703BF7' }}>PH</span>
-        </div>
-        <div style={{ fontSize: 11, color: '#595959', marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-          Admin Portal
-        </div>
+    <aside style={{ width: 220, background: '#0A0A0A', borderRight: '1px solid #1A1A1A', display: 'flex', flexDirection: 'column', height: '100vh', position: 'sticky', top: 0, flexShrink: 0, overflowY: 'auto' }}>
+      {/* Logo */}
+      <div style={{ padding: '16px 18px 14px', borderBottom: '1px solid #1A1A1A' }}>
+        <div style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>LUPA <span style={{ color: '#703BF7' }}>PH</span></div>
+        <div style={{ fontSize: 10, color: '#EF4444', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 2, fontWeight: 600 }}>Admin Portal</div>
       </div>
 
-      <nav style={{ padding: '16px 12px', flex: 1, overflowY: 'auto' }}>
-        {NAV.map(item => {
-          const active = pathname === item.href
-          return (
-            <a
-              key={item.label}
-              href={item.href}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '10px 12px',
-                borderRadius: 8,
-                marginBottom: 2,
-                fontSize: 14,
-                fontWeight: 500,
-                textDecoration: 'none',
-                background: active ? 'rgba(112,59,247,0.15)' : 'transparent',
-                color: active ? '#703BF7' : '#595959',
-                borderLeft: active ? '2px solid #703BF7' : '2px solid transparent',
-              }}
-            >
-              <span>{item.icon}</span>{item.label}
-            </a>
-          )
-        })}
+      {/* Nav */}
+      <nav style={{ flex: 1, padding: '10px 8px', overflowY: 'auto' }}>
+        {NAV.map(group => (
+          <div key={group.section} style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 10, color: '#333', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '0 10px', marginBottom: 4 }}>{group.section}</div>
+            {group.items.map(item => {
+              const active = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
+              return (
+                <Link key={item.href} href={item.href} style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '8px 10px', borderRadius: 7, marginBottom: 1,
+                  fontSize: 13, fontWeight: active ? 600 : 400,
+                  background: active ? 'rgba(112,59,247,0.15)' : 'transparent',
+                  color: active ? '#703BF7' : '#666',
+                  borderLeft: `2px solid ${active ? '#703BF7' : 'transparent'}`,
+                }}>
+                  <span style={{ fontSize: 14 }}>{item.icon}</span>
+                  {item.label}
+                </Link>
+              )
+            })}
+          </div>
+        ))}
+
+        {/* Live portal links */}
+        <div style={{ borderTop: '1px solid #1A1A1A', paddingTop: 12, marginTop: 4 }}>
+          <div style={{ fontSize: 10, color: '#333', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '0 10px', marginBottom: 6 }}>Live Portals</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, padding: '0 6px' }}>
+            {PORTAL_LINKS.map(p => (
+              <a key={p.label} href={p.href} target="_blank" rel="noopener noreferrer"
+                style={{ fontSize: 10, color: '#595959', background: '#141414', border: '1px solid #1A1A1A', borderRadius: 6, padding: '3px 7px' }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
+                onMouseLeave={e => (e.currentTarget.style.color = '#595959')}
+              >{p.label} ↗</a>
+            ))}
+          </div>
+        </div>
       </nav>
-
-      <div style={{ padding: '16px 20px', borderTop: '1px solid #1A1A1A' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(239,68,68,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>
-            🛡️
-          </div>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>Admin</div>
-            <div style={{ fontSize: 11, color: '#595959' }}>LUPA PH Platform</div>
-          </div>
-        </div>
-      </div>
     </aside>
   )
 }

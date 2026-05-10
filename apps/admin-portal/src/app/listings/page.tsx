@@ -1,189 +1,99 @@
-'use client'
-import { useEffect, useState } from 'react'
+import { AdminSidebar } from '@/components/AdminSidebar'
+import { supabaseAdmin } from '@/lib/supabase'
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://ofw-realty-api-production.up.railway.app'
-const WEB_URL = process.env.NEXT_PUBLIC_WEB_URL ?? 'https://ofw-realty-web.vercel.app'
+const WEB_URL = process.env.NEXT_PUBLIC_WEB_URL ?? 'http://localhost:3000'
 
-const DEMO_LISTINGS = [
-  { id: 'b1000004', title: 'House & Lot in Bacoor Cavite', type: 'House & Lot', price_php: 2800000, city: 'Bacoor', province: 'Cavite', status: 'active', scam_flag: false, realtor_name: 'Maria Santos', created_at: new Date(Date.now() - 5 * 86400000).toISOString() },
-  { id: 'b1000005', title: 'Lot in Dasmariñas Cavite', type: 'Residential Lot', price_php: 1500000, city: 'Dasmariñas', province: 'Cavite', status: 'active', scam_flag: false, realtor_name: 'Juan Dela Cruz', created_at: new Date(Date.now() - 10 * 86400000).toISOString() },
-  { id: 'b1000009', title: 'Condo Unit in Cebu IT Park', type: 'Condo', price_php: 5200000, city: 'Cebu City', province: 'Cebu', status: 'reserved', scam_flag: false, realtor_name: 'Ana Reyes', created_at: new Date(Date.now() - 3 * 86400000).toISOString() },
-  { id: 'b1000011', title: 'Suspicious Lot Listing', type: 'Residential Lot', price_php: 500000, city: 'Davao City', province: 'Davao del Sur', status: 'active', scam_flag: true, realtor_name: 'Unknown Agent', created_at: new Date(Date.now() - 1 * 86400000).toISOString() },
-]
+const STATUS_COLORS: Record<string, string> = {
+  active: '#10B981', reserved: '#F59E0B', sold: '#703BF7', deactivated: '#595959',
+}
 
-const STATUS_STYLE: Record<string, { bg: string; color: string }> = {
-  active:      { bg: 'rgba(16,185,129,0.15)',  color: '#10B981' },
-  reserved:    { bg: 'rgba(245,158,11,0.15)',  color: '#F59E0B' },
-  sold:        { bg: 'rgba(112,59,247,0.15)',  color: '#703BF7' },
-  deactivated: { bg: 'rgba(89,89,89,0.15)',    color: '#595959' },
+const TYPE_LABELS: Record<string, string> = {
+  house_and_lot: 'House & Lot', residential_lot: 'Lot', condo: 'Condo',
+  commercial: 'Commercial', farm_lot: 'Farm Lot',
+}
+
+async function getListings() {
+  const { data } = await supabaseAdmin
+    .from('listings')
+    .select('id, title, property_type, price_php, city, province, status, is_featured, blockchain_verified, scam_flagged, created_at, realtors(users(full_name))')
+    .order('created_at', { ascending: false })
+    .limit(100)
+  return data ?? []
 }
 
 function formatPHP(n: number) {
-  return `₱${n.toLocaleString()}`
+  if (n >= 1_000_000) return `₱${(n / 1_000_000).toFixed(1)}M`
+  return `₱${(n / 1000).toFixed(0)}K`
 }
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-PH', { dateStyle: 'medium' })
+function timeAgo(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime()
+  const h = Math.floor(diff / 3600000)
+  if (h < 24) return `${h}h ago`
+  return `${Math.floor(h / 24)}d ago`
 }
 
-export default function AdminListingsPage() {
-  const [listings, setListings] = useState<any[]>([])
-  const [isDemo, setIsDemo] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [toast, setToast] = useState('')
-  const [acting, setActing] = useState<string | null>(null)
-
-  useEffect(() => {
-    fetch(`${API}/admin/listings?limit=50`, { cache: 'no-store' })
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (data?.length) {
-          setListings(data)
-        } else {
-          setListings(DEMO_LISTINGS)
-          setIsDemo(true)
-        }
-      })
-      .catch(() => { setListings(DEMO_LISTINGS); setIsDemo(true) })
-      .finally(() => setLoading(false))
-  }, [])
-
-  function showToast(msg: string) {
-    setToast(msg)
-    setTimeout(() => setToast(''), 4000)
-  }
-
-  async function handleAction(id: string, action: 'deactivate' | 'flag_scam' | 'unflag') {
-    setActing(id)
-    try {
-      const endpoint = action === 'deactivate'
-        ? `${API}/admin/listings/${id}/deactivate`
-        : action === 'flag_scam'
-          ? `${API}/admin/listings/${id}/flag-scam`
-          : `${API}/admin/listings/${id}/unflag`
-
-      const res = await fetch(endpoint, { method: 'PATCH' })
-
-      if (res.ok) {
-        setListings(prev => prev.map(l => {
-          if (l.id !== id) return l
-          if (action === 'deactivate') return { ...l, status: 'deactivated' }
-          if (action === 'flag_scam') return { ...l, scam_flag: true }
-          return { ...l, scam_flag: false }
-        }))
-        showToast(action === 'deactivate' ? '✅ Listing deactivated.' : action === 'flag_scam' ? '🚩 Listing flagged as scam.' : '✅ Scam flag removed.')
-      } else {
-        // Demo mode — apply locally
-        setListings(prev => prev.map(l => {
-          if (l.id !== id) return l
-          if (action === 'deactivate') return { ...l, status: 'deactivated' }
-          if (action === 'flag_scam') return { ...l, scam_flag: true }
-          return { ...l, scam_flag: false }
-        }))
-        showToast('⚠️ API unavailable — change applied locally only.')
-      }
-    } catch {
-      showToast('❌ Action failed. Please try again.')
-    } finally {
-      setActing(null)
-    }
-  }
+export default async function ListingsPage() {
+  const listings = await getListings()
+  const byStatus = listings.reduce((acc: any, l) => { acc[l.status] = (acc[l.status] ?? 0) + 1; return acc }, {})
+  const scamFlagged = listings.filter(l => l.scam_flagged).length
 
   return (
-    <div style={{ padding: 32, color: '#fff', fontFamily: "'Inter', system-ui, sans-serif" }}>
-      {toast && (
-        <div style={{ position: 'fixed', top: 24, right: 24, background: '#0D0D0D', border: `1px solid ${toast.startsWith('✅') ? 'rgba(16,185,129,0.4)' : toast.startsWith('🚩') ? 'rgba(239,68,68,0.4)' : 'rgba(245,158,11,0.4)'}`, borderRadius: 10, padding: '14px 20px', fontSize: 14, color: toast.startsWith('✅') ? '#10B981' : toast.startsWith('🚩') ? '#EF4444' : '#F59E0B', zIndex: 9999 }}>
-          {toast}
+    <div style={{ display: 'flex', height: '100vh', background: '#000', fontFamily: 'Inter, sans-serif', color: '#fff' }}>
+      <AdminSidebar />
+      <main style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
+        <div style={{ marginBottom: 24 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: '#fff', margin: 0 }}>Listings</h1>
+          <p style={{ fontSize: 14, color: '#595959', marginTop: 4 }}>{listings.length} total properties</p>
         </div>
-      )}
 
-      <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 800, color: '#fff', margin: 0 }}>Listings</h1>
-        <p style={{ fontSize: 14, color: '#595959', margin: '4px 0 0' }}>{listings.length} listings</p>
-      </div>
-
-      {isDemo && (
-        <div style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 10, padding: '10px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span>⚠️</span>
-          <span style={{ fontSize: 13, fontWeight: 600, color: '#F59E0B' }}>Demo Mode</span>
-          <span style={{ fontSize: 13, color: '#595959' }}>— API unavailable, showing sample data.</span>
+        {/* Stats */}
+        <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
+          {Object.entries(byStatus).map(([status, count]: any) => (
+            <div key={status} style={{ background: '#0D0D0D', border: `1px solid ${STATUS_COLORS[status] ?? '#1A1A1A'}30`, borderRadius: 10, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 18, fontWeight: 800, color: STATUS_COLORS[status] ?? '#fff' }}>{count}</span>
+              <span style={{ fontSize: 12, color: '#999', textTransform: 'capitalize' }}>{status}</span>
+            </div>
+          ))}
+          {scamFlagged > 0 && (
+            <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 10, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 18, fontWeight: 800, color: '#EF4444' }}>{scamFlagged}</span>
+              <span style={{ fontSize: 12, color: '#EF4444' }}>🚨 Scam Flagged</span>
+            </div>
+          )}
         </div>
-      )}
 
-      {loading ? (
-        <div style={{ color: '#595959', fontSize: 14 }}>Loading…</div>
-      ) : (
+        {/* Table */}
         <div style={{ background: '#0D0D0D', border: '1px solid #1A1A1A', borderRadius: 12, overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 120px 130px 100px 100px 180px', padding: '12px 20px', borderBottom: '1px solid #141414' }}>
-            {['Property', 'Type', 'Price', 'Status', 'Listed', 'Actions'].map(h => (
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 100px 120px 120px 100px 80px 80px', padding: '10px 20px', borderBottom: '1px solid #141414' }}>
+            {['Property', 'Type', 'Price', 'Location', 'Status', 'Badges', 'Added'].map(h => (
               <div key={h} style={{ fontSize: 11, color: '#595959', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</div>
             ))}
           </div>
-
-          {listings.map((l: any, i: number) => {
-            const s = STATUS_STYLE[l.status] ?? STATUS_STYLE.active
-            const isActing = acting === l.id
-            return (
-              <div key={l.id} style={{ display: 'grid', gridTemplateColumns: '2fr 120px 130px 100px 100px 180px', padding: '14px 20px', borderBottom: i < listings.length - 1 ? '1px solid #141414' : 'none', alignItems: 'center', background: l.scam_flag ? 'rgba(239,68,68,0.04)' : 'transparent' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>{l.title}</span>
-                    {l.scam_flag && (
-                      <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 99, background: 'rgba(239,68,68,0.2)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.3)' }}>
-                        🚩 SCAM FLAG
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ fontSize: 12, color: '#595959', marginTop: 2 }}>📍 {l.city}, {l.province} · {l.realtor_name}</div>
-                </div>
-                <div style={{ fontSize: 13, color: '#999' }}>{l.type}</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{formatPHP(l.price_php)}</div>
-                <div>
-                  <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 99, background: s.bg, color: s.color, textTransform: 'capitalize' }}>
-                    {l.status}
-                  </span>
-                </div>
-                <div style={{ fontSize: 12, color: '#595959' }}>{formatDate(l.created_at)}</div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  <a
-                    href={`${WEB_URL}/listings/${l.id}`}
-                    target="_blank"
-                    style={{ fontSize: 11, color: '#703BF7', padding: '4px 8px', borderRadius: 6, border: '1px solid rgba(112,59,247,0.3)', background: 'rgba(112,59,247,0.08)', textDecoration: 'none' }}
-                  >
-                    View ↗
-                  </a>
-                  {l.status !== 'deactivated' && (
-                    <button
-                      onClick={() => handleAction(l.id, 'deactivate')}
-                      disabled={isActing}
-                      style={{ fontSize: 11, color: '#F59E0B', padding: '4px 8px', borderRadius: 6, border: '1px solid rgba(245,158,11,0.3)', background: 'rgba(245,158,11,0.08)', cursor: 'pointer' }}
-                    >
-                      Deactivate
-                    </button>
-                  )}
-                  {!l.scam_flag ? (
-                    <button
-                      onClick={() => handleAction(l.id, 'flag_scam')}
-                      disabled={isActing}
-                      style={{ fontSize: 11, color: '#EF4444', padding: '4px 8px', borderRadius: 6, border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', cursor: 'pointer' }}
-                    >
-                      🚩 Flag
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleAction(l.id, 'unflag')}
-                      disabled={isActing}
-                      style={{ fontSize: 11, color: '#595959', padding: '4px 8px', borderRadius: 6, border: '1px solid #1A1A1A', background: '#141414', cursor: 'pointer' }}
-                    >
-                      Unflag
-                    </button>
-                  )}
-                </div>
+          {listings.map((l, i) => (
+            <div key={l.id} style={{ display: 'grid', gridTemplateColumns: '2fr 100px 120px 120px 100px 80px 80px', padding: '12px 20px', borderBottom: i < listings.length - 1 ? '1px solid #141414' : 'none', alignItems: 'center' }}>
+              <div>
+                <a href={`${WEB_URL}/listings/${l.id}`} target="_blank" rel="noopener noreferrer"
+                  style={{ fontSize: 13, fontWeight: 600, color: l.scam_flagged ? '#EF4444' : '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+                  {l.scam_flagged ? '🚨 ' : ''}{l.title}
+                </a>
+                <div style={{ fontSize: 11, color: '#595959' }}>{(l.realtors as any)?.users?.full_name ?? 'Unknown agent'}</div>
               </div>
-            )
-          })}
+              <div style={{ fontSize: 11, color: '#999' }}>{TYPE_LABELS[l.property_type] ?? l.property_type}</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{formatPHP(l.price_php)}</div>
+              <div style={{ fontSize: 12, color: '#595959' }}>{l.city}, {l.province}</div>
+              <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 99, background: `${STATUS_COLORS[l.status] ?? '#595959'}15`, color: STATUS_COLORS[l.status] ?? '#595959', textTransform: 'capitalize', display: 'inline-block' }}>
+                {l.status}
+              </span>
+              <div style={{ display: 'flex', gap: 3 }}>
+                {l.is_featured && <span title="Featured" style={{ fontSize: 12 }}>⭐</span>}
+                {l.blockchain_verified && <span title="Blockchain Verified" style={{ fontSize: 12 }}>🔗</span>}
+              </div>
+              <div style={{ fontSize: 11, color: '#595959' }}>{timeAgo(l.created_at)}</div>
+            </div>
+          ))}
         </div>
-      )}
+      </main>
     </div>
   )
 }
