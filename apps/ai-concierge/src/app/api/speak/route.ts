@@ -1,11 +1,17 @@
 import { NextRequest } from 'next/server'
 import OpenAI from 'openai'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+// TTS only available with OpenAI key — falls back to browser speechSynthesis on client
+const openai = process.env.OPENAI_API_KEY
+  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  : null
 
 export async function POST(req: NextRequest) {
   const { text } = await req.json()
   if (!text?.trim()) return new Response('No text', { status: 400 })
+
+  // If no OpenAI key, return 204 — client will use browser speechSynthesis
+  if (!openai) return new Response(null, { status: 204 })
 
   // Strip markdown, emoji, and listing card placeholders for cleaner speech
   const clean = text
