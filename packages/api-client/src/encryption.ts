@@ -9,7 +9,10 @@
 // ─── Helpers ───────────────────────────────────────────────────
 
 function base64ToBytes(b64: string): Uint8Array {
-  const binary = atob(b64)
+  // Works in both browser (atob) and Node.js (Buffer)
+  const binary = typeof atob !== 'undefined'
+    ? atob(b64)
+    : Buffer.from(b64, 'base64').toString('binary')
   const bytes = new Uint8Array(binary.length)
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i)
@@ -18,11 +21,15 @@ function base64ToBytes(b64: string): Uint8Array {
 }
 
 function bytesToBase64(bytes: Uint8Array): string {
-  let binary = ''
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i])
+  // Works in both browser (btoa) and Node.js (Buffer)
+  if (typeof btoa !== 'undefined') {
+    let binary = ''
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i])
+    }
+    return btoa(binary)
   }
-  return btoa(binary)
+  return Buffer.from(bytes).toString('base64')
 }
 
 // ─── Key Derivation ────────────────────────────────────────────
@@ -43,10 +50,11 @@ export async function deriveRoomKey(
   userSub: string,
 ): Promise<CryptoKey> {
   const encoder = new TextEncoder()
+  // Use globalThis.crypto for Node.js 18+ compatibility
+  const subtle = (globalThis.crypto ?? crypto).subtle
 
-  // Import the raw room secret as HKDF key material
   const secretBytes = base64ToBytes(roomSecret)
-  const keyMaterial = await crypto.subtle.importKey(
+  const keyMaterial = await subtle.importKey(
     'raw',
     secretBytes,
     { name: 'HKDF' },
@@ -54,12 +62,10 @@ export async function deriveRoomKey(
     ['deriveKey'],
   )
 
-  // Use the userSub as HKDF info so each participant's key is scoped to them
   const info = encoder.encode(`negotiation-deal-room:${userSub}`)
-  // Salt is empty (zero-length) — the room secret already provides sufficient entropy
   const salt = new Uint8Array(0)
 
-  return crypto.subtle.deriveKey(
+  return subtle.deriveKey(
     {
       name: 'HKDF',
       hash: 'SHA-256',
@@ -88,9 +94,10 @@ export async function encrypt(
   plaintext: string,
 ): Promise<{ ciphertext: string; iv: string }> {
   const encoder = new TextEncoder()
-  const iv = crypto.getRandomValues(new Uint8Array(12)) // 96-bit IV for AES-GCM
+  const subtle = (globalThis.crypto ?? crypto).subtle
+  const iv = (globalThis.crypto ?? crypto).getRandomValues(new Uint8Array(12))
 
-  const ciphertextBuffer = await crypto.subtle.encrypt(
+  const ciphertextBuffer = await subtle.encrypt(
     { name: 'AES-GCM', iv },
     key,
     encoder.encode(plaintext),
@@ -119,8 +126,9 @@ export async function decrypt(
   iv: string,
 ): Promise<string> {
   const decoder = new TextDecoder()
+  const subtle = (globalThis.crypto ?? crypto).subtle
 
-  const plaintextBuffer = await crypto.subtle.decrypt(
+  const plaintextBuffer = await subtle.decrypt(
     { name: 'AES-GCM', iv: base64ToBytes(iv) },
     key,
     base64ToBytes(ciphertext),
