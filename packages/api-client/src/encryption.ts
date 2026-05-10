@@ -8,8 +8,8 @@
 
 // ─── Helpers ───────────────────────────────────────────────────
 
+/** Convert base64 string to Uint8Array — works in browser and Node.js */
 function base64ToBytes(b64: string): Uint8Array {
-  // Works in both browser (atob) and Node.js (Buffer)
   const binary = typeof atob !== 'undefined'
     ? atob(b64)
     : Buffer.from(b64, 'base64').toString('binary')
@@ -20,8 +20,8 @@ function base64ToBytes(b64: string): Uint8Array {
   return bytes
 }
 
+/** Convert Uint8Array to base64 string — works in browser and Node.js */
 function bytesToBase64(bytes: Uint8Array): string {
-  // Works in both browser (btoa) and Node.js (Buffer)
   if (typeof btoa !== 'undefined') {
     let binary = ''
     for (let i = 0; i < bytes.length; i++) {
@@ -32,75 +32,78 @@ function bytesToBase64(bytes: Uint8Array): string {
   return Buffer.from(bytes).toString('base64')
 }
 
+/**
+ * Convert Uint8Array to a plain ArrayBuffer.
+ * Required for strict TypeScript compatibility with Web Crypto APIs on Node 24+
+ * where Uint8Array<ArrayBufferLike> is not assignable to BufferSource.
+ */
+function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  return bytes.buffer.slice(
+    bytes.byteOffset,
+    bytes.byteOffset + bytes.byteLength,
+  ) as ArrayBuffer
+}
+
+/** Get the subtle crypto instance — works in browser and Node.js 18+ */
+function getSubtle(): SubtleCrypto {
+  return (globalThis.crypto ?? crypto).subtle
+}
+
+/** Get the crypto instance for random values */
+function getCrypto(): Crypto {
+  return (globalThis.crypto ?? crypto) as Crypto
+}
+
 // ─── Key Derivation ────────────────────────────────────────────
 
-/**
- * Derive a 256-bit AES-GCM key from a room secret and a user's JWT subject claim.
- *
- * @param roomSecret - Base64-encoded 256-bit room secret (from the API)
- * @param userSub    - The user's JWT `sub` claim
- * @returns A CryptoKey suitable for AES-GCM encrypt/decrypt operations
- *
- * The derivation is deterministic: the same (roomSecret, userSub) pair always
- * produces the same key, enabling any authorised participant to re-derive the
- * key from the values delivered by the authenticated GET endpoint.
- */
 export async function deriveRoomKey(
   roomSecret: string,
   userSub: string,
 ): Promise<CryptoKey> {
   const encoder = new TextEncoder()
-  // Use globalThis.crypto for Node.js 18+ compatibility
-  const subtle = (globalThis.crypto ?? crypto).subtle
+  const subtle = getSubtle()
 
   const secretBytes = base64ToBytes(roomSecret)
   const keyMaterial = await subtle.importKey(
     'raw',
-    secretBytes.buffer.slice(secretBytes.byteOffset, secretBytes.byteOffset + secretBytes.byteLength) as ArrayBuffer,
+    toArrayBuffer(secretBytes),
     { name: 'HKDF' },
     false,
     ['deriveKey'],
   )
 
-  const info = encoder.encode(`negotiation-deal-room:${userSub}`)
+  const infoBytes = encoder.encode(`negotiation-deal-room:${userSub}`)
   const salt = new Uint8Array(0)
 
   return subtle.deriveKey(
     {
       name: 'HKDF',
       hash: 'SHA-256',
-      salt,
-      info,
+      salt: toArrayBuffer(salt),
+      info: toArrayBuffer(infoBytes),
     },
     keyMaterial,
     { name: 'AES-GCM', length: 256 },
-    false,       // not extractable
+    false,
     ['encrypt', 'decrypt'],
   )
 }
 
 // ─── Encryption ────────────────────────────────────────────────
 
-/**
- * Encrypt a plaintext string with AES-GCM.
- *
- * @param key       - A CryptoKey derived via `deriveRoomKey`
- * @param plaintext - The message content to encrypt
- * @returns Base64-encoded `ciphertext` and `iv` suitable for storage in
- *          `negotiation_messages.content_enc` / `content_iv`
- */
 export async function encrypt(
   key: CryptoKey,
   plaintext: string,
 ): Promise<{ ciphertext: string; iv: string }> {
   const encoder = new TextEncoder()
-  const subtle = (globalThis.crypto ?? crypto).subtle
-  const iv = (globalThis.crypto ?? crypto).getRandomValues(new Uint8Array(12))
+  const subtle = getSubtle()
+  const iv = getCrypto().getRandomValues(new Uint8Array(12))
 
+  const plaintextBytes = encoder.encode(plaintext)
   const ciphertextBuffer = await subtle.encrypt(
-    { name: 'AES-GCM', iv },
+    { name: 'AES-GCM', iv: toArrayBuffer(iv) },
     key,
-    encoder.encode(plaintext),
+    toArrayBuffer(plaintextBytes),
   )
 
   return {
@@ -111,27 +114,21 @@ export async function encrypt(
 
 // ─── Decryption ────────────────────────────────────────────────
 
-/**
- * Decrypt an AES-GCM ciphertext back to the original plaintext string.
- *
- * @param key        - A CryptoKey derived via `deriveRoomKey`
- * @param ciphertext - Base64-encoded ciphertext (from `encrypt`)
- * @param iv         - Base64-encoded 12-byte IV (from `encrypt`)
- * @returns The original plaintext string
- * @throws If the key or IV is wrong, or the ciphertext has been tampered with
- */
 export async function decrypt(
   key: CryptoKey,
   ciphertext: string,
   iv: string,
 ): Promise<string> {
   const decoder = new TextDecoder()
-  const subtle = (globalThis.crypto ?? crypto).subtle
+  const subtle = getSubtle()
+
+  const ivBytes = base64ToBytes(iv)
+  const ciphertextBytes = base64ToBytes(ciphertext)
 
   const plaintextBuffer = await subtle.decrypt(
-    { name: 'AES-GCM', iv: base64ToBytes(iv) },
+    { name: 'AES-GCM', iv: toArrayBuffer(ivBytes) },
     key,
-    base64ToBytes(ciphertext),
+    toArrayBuffer(ciphertextBytes),
   )
 
   return decoder.decode(plaintextBuffer)
