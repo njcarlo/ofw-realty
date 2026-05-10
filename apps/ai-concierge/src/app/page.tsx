@@ -117,7 +117,8 @@ export default function ListahanCallAgent() {
   }, [])
 
   const speak = useCallback(async (text: string) => {
-    // Stop listening before speaking — prevents feedback loop
+    // Hard stop mic + mark as speaking BEFORE any audio plays
+    isSpeakingRef.current = true
     recognitionRef.current?.stop()
     if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
     setCallState('speaking')
@@ -146,6 +147,10 @@ export default function ListahanCallAgent() {
         }
       }
     } catch { await speakBrowser(text) }
+
+    // Wait 600ms after audio ends before opening mic — clears any audio tail
+    await new Promise(r => setTimeout(r, 600))
+    isSpeakingRef.current = false
     setCallState('listening')
     startListening()
   }, [useBrowserTTS, speakBrowser])
@@ -207,25 +212,30 @@ export default function ListahanCallAgent() {
   }, [speak])
 
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isSpeakingRef = useRef(false)  // prevents mic restart during TTS playback
 
   const startListening = useCallback(() => {
+    // Never start listening while Listahan is speaking
+    if (isSpeakingRef.current) return
+
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
     if (!SR) { setCallState('connected'); return }
 
     const recognition = new SR()
-    // en-PH handles Taglish better than fil-PH in Chrome
     recognition.lang = 'en-PH'
     recognition.interimResults = true
-    recognition.continuous = true          // keep mic open — don't restart on every pause
+    recognition.continuous = true
     recognition.maxAlternatives = 1
     recognitionRef.current = recognition
 
-    let accumulated = ''                   // build up the full sentence
+    let accumulated = ''
 
     recognition.onstart = () => { setCallState('listening') }
 
     recognition.onresult = (e: any) => {
-      // Collect all results so far
+      // Ignore results if we're speaking (feedback loop guard)
+      if (isSpeakingRef.current) return
+
       let interim = ''
       for (let i = 0; i < e.results.length; i++) {
         const result = e.results[i]
@@ -237,11 +247,10 @@ export default function ListahanCallAgent() {
       }
       setTranscript((accumulated + interim).trim())
 
-      // Reset silence timer on every new speech
       if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
 
-      // After 1.5s of silence, send what we have
       silenceTimerRef.current = setTimeout(() => {
+        if (isSpeakingRef.current) return  // double-check before sending
         const finalText = accumulated.trim() || interim.trim()
         if (finalText.length > 1) {
           recognition.stop()
@@ -253,8 +262,7 @@ export default function ListahanCallAgent() {
 
     recognition.onerror = (e: any) => {
       if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
-      // Only restart on no-speech — ignore other errors silently
-      if (e.error === 'no-speech') {
+      if (e.error === 'no-speech' && !isSpeakingRef.current) {
         recognition.stop()
         setTimeout(() => startListening(), 500)
       }
@@ -262,11 +270,13 @@ export default function ListahanCallAgent() {
 
     recognition.onend = () => {
       if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
-      // Only auto-restart if still in listening state (not thinking/speaking)
-      setCallState(s => {
-        if (s === 'listening') setTimeout(() => startListening(), 300)
-        return s
-      })
+      // Only restart if NOT speaking and still in listening state
+      if (!isSpeakingRef.current) {
+        setCallState(s => {
+          if (s === 'listening') setTimeout(() => startListening(), 300)
+          return s
+        })
+      }
     }
 
     recognition.start()
@@ -291,6 +301,7 @@ export default function ListahanCallAgent() {
     audioRef.current?.pause()
     window.speechSynthesis?.cancel()
     if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
+    isSpeakingRef.current = false
     setCallState('idle')
     setTranscript('')
   }
