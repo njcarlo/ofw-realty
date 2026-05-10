@@ -11,8 +11,9 @@ const supabase = createClient(
 const PORTAL_URLS: Record<string, string> = {
   buyer:        '/dashboard',
   seller:       '/sell',
-  realtor:      'https://ofw-realty-agent-portal.vercel.app',
-  broker_admin: 'https://ofw-realty-broker-portal.vercel.app',
+  realtor:      process.env.NEXT_PUBLIC_AGENT_PORTAL_URL ?? 'http://localhost:3002',
+  broker_admin: process.env.NEXT_PUBLIC_BROKER_PORTAL_URL ?? 'http://localhost:3003',
+  developer:    process.env.NEXT_PUBLIC_DEVELOPER_PORTAL_URL ?? 'http://localhost:3005',
 }
 
 const DEMO_ACCOUNTS = [
@@ -60,6 +61,17 @@ const DEMO_ACCOUNTS = [
     color: '#F59E0B',
     features: ['Manage agents', 'Property pool', 'Commission rates', 'Co-broking network'],
   },
+  {
+    role: 'Developer',
+    userRole: 'developer',
+    icon: '🏗️',
+    email: 'developer@demo.lupaph.com',
+    password: 'Demo@12345',
+    name: 'Carlo Dev Reyes',
+    desc: 'Manage projects, units, broker network, reservations',
+    color: '#8B5CF6',
+    features: ['Manage projects & units', 'Broker network', 'Reservations', 'Commission tracking'],
+  },
 ]
 
 interface Props {
@@ -100,7 +112,7 @@ export function DemoLoginPanel({ onClose }: Props) {
       <div style={{
         position: 'fixed', top: '50%', left: '50%',
         transform: 'translate(-50%, -50%)',
-        zIndex: 201, width: '100%', maxWidth: 680,
+        zIndex: 201, width: '100%', maxWidth: 820,
         background: isDark ? '#0D0D0D' : '#fff',
         border: `1px solid ${isDark ? '#1A1A1A' : '#E5E7EB'}`,
         borderRadius: 20, padding: 32,
@@ -129,7 +141,7 @@ export function DemoLoginPanel({ onClose }: Props) {
         </div>
 
         {/* Account cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 20 }}>
           {DEMO_ACCOUNTS.map(account => (
             <div key={account.role} style={{
               background: isDark ? '#141414' : '#F9FAFB',
@@ -176,7 +188,13 @@ export function DemoLoginPanel({ onClose }: Props) {
                 {loading === account.role ? '⏳ Logging in...' : `Login as ${account.role}`}
               </button>
               <div style={{ fontSize: 10, color: isDark ? '#595959' : '#9CA3AF', textAlign: 'center', marginTop: 6 }}>
-                → {account.userRole === 'realtor' ? 'agent-portal.vercel.app' : account.userRole === 'broker_admin' ? 'broker-portal.vercel.app' : account.userRole === 'seller' ? 'Seller Dashboard' : 'Buyer Dashboard'}
+                → {
+                  account.userRole === 'realtor' ? 'Agent Portal (:3002)'
+                  : account.userRole === 'broker_admin' ? 'Broker Portal (:3003)'
+                  : account.userRole === 'developer' ? 'Developer Portal (:3005)'
+                  : account.userRole === 'seller' ? 'Seller Dashboard'
+                  : 'Buyer Dashboard'
+                }
               </div>
             </div>
           ))}
