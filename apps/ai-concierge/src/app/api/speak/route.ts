@@ -34,14 +34,14 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         input: { text: clean },
         voice: {
-          languageCode: 'en-US',
-          name: 'en-US-Neural2-D',  // deep, warm male — best available
+          languageCode: 'fil-PH',
+          name: 'fil-ph-Neural2-D',  // best Filipino Neural2 male voice
           ssmlGender: 'MALE',
         },
         audioConfig: {
           audioEncoding: 'MP3',
-          speakingRate: 0.95,   // slightly slower — more authoritative
-          pitch: -2.0,          // slightly lower pitch — warmer, deeper
+          speakingRate: 0.92,   // slightly slower — more composed, concierge feel
+          pitch: -1.5,          // slightly lower — warmer tone
           volumeGainDb: 1.0,
         },
       }),
