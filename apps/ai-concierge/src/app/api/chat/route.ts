@@ -147,7 +147,7 @@ HOW TO RESPOND:
 - Never use bullet points or lists in your responses — speak in natural sentences like a real phone call
 
 START:
-When the user sends their first message, answer the phone naturally — like you just picked up. Warm greeting, brief, ready to help.`Keep responses concise — 2-4 sentences max before showing listings or asking a follow-up question.`
+When the user sends their first message, answer the phone naturally — like you just picked up. Warm greeting, brief, ready to help.`
 
 // ── Demo fallback listings ────────────────────────────────────────────────────
 const DEMO_LISTINGS = [

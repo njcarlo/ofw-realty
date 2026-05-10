@@ -14,6 +14,8 @@
         "NEXT_PUBLIC_BROKER_PORTAL_URL",
         "NEXT_PUBLIC_SERVICES_PORTAL_URL",
         "NEXT_PUBLIC_DEVELOPER_PORTAL_URL",
+        "OPENAI_API_KEY",
+        "GROQ_API_KEY",
         "NODE_ENV"
       ]
     },
