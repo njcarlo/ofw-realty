@@ -16,6 +16,8 @@
         "NEXT_PUBLIC_DEVELOPER_PORTAL_URL",
         "OPENAI_API_KEY",
         "GROQ_API_KEY",
+        "ELEVENLABS_API_KEY",
+        "ELEVENLABS_VOICE_ID",
         "NODE_ENV"
       ]
     },
