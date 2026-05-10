@@ -25,9 +25,9 @@ export async function POST(req: NextRequest) {
 
   const mp3 = await openai.audio.speech.create({
     model: 'tts-1',
-    voice: 'nova',   // warm, clear female voice — fits Listahan
+    voice: 'onyx',   // deep, warm male voice — lobby concierge feel
     input: clean,
-    speed: 1.05,
+    speed: 0.95,     // slightly slower = more authoritative, less rushed
   })
 
   const buffer = Buffer.from(await mp3.arrayBuffer())
