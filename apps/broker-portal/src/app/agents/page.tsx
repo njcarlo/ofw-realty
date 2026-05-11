@@ -1,5 +1,7 @@
 import { BrokerSidebar } from '@/components/BrokerSidebar'
 
+const AGENT_PORTAL_URL = process.env.NEXT_PUBLIC_AGENT_PORTAL_URL ?? 'https://ofw-realty-agent-portal.vercel.app'
+
 const AGENTS = [
   { name: 'Juan Santos', email: 'agent@demo.lupaph.com', listings: 8, leads: 12, sold: 3, points: 1240, verified: true, status: 'active' },
   { name: 'Maria Cruz', email: 'maria@lupaph.com', listings: 6, leads: 9, sold: 2, points: 980, verified: true, status: 'active' },
@@ -42,7 +44,8 @@ export default function AgentsPage() {
               <div style={{ fontSize: 13, color: '#999' }}>{a.leads}</div>
               <div style={{ fontSize: 13, color: '#10B981', fontWeight: 600 }}>{a.sold}</div>
               <div style={{ fontSize: 14, fontWeight: 700, color: '#703BF7' }}>{a.points.toLocaleString()}</div>
-              <button style={{ background: 'transparent', color: '#703BF7', border: '1px solid rgba(112,59,247,0.3)', borderRadius: 6, padding: '5px 10px', fontSize: 12, cursor: 'pointer' }}>View</button>
+              <a href={`${AGENT_PORTAL_URL}`} target="_blank" rel="noopener noreferrer"
+                style={{ background: 'transparent', color: '#703BF7', border: '1px solid rgba(112,59,247,0.3)', borderRadius: 6, padding: '5px 10px', fontSize: 12 }}>View</a>
             </div>
           ))}
         </div>

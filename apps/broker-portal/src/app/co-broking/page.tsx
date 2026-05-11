@@ -1,21 +1,42 @@
+'use client'
+import { useState } from 'react'
 import { BrokerSidebar } from '@/components/BrokerSidebar'
 
 export default function CoBrokingPage() {
+  const [optedOut, setOptedOut] = useState(false)
+  const [toast, setToast] = useState('')
+
+  function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(''), 3000) }
+
+  function handleOptOut() {
+    setOptedOut(v => !v)
+    showToast(optedOut ? '✅ Re-joined Co-Broking Network' : '✅ Opted out of Co-Broking Network')
+  }
   return (
     <div style={{ display: 'flex', height: '100vh', background: '#000', fontFamily: "'Inter', system-ui, sans-serif", color: '#fff' }}>
       <BrokerSidebar />
       <main style={{ flex: 1, overflow: 'auto', padding: 32 }}>
+        {toast && (
+          <div style={{ position: 'fixed', top: 20, right: 20, background: '#0D0D0D', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 10, padding: '12px 18px', fontSize: 14, color: '#10B981', zIndex: 100 }}>{toast}</div>
+        )}
         <div style={{ marginBottom: 28 }}>
           <h1 style={{ fontSize: 24, fontWeight: 800, color: '#fff', margin: 0 }}>Co-Broking Network</h1>
           <p style={{ fontSize: 14, color: '#595959', margin: '4px 0 0' }}>Share inventory with partner brokerages — prevent ghost listings</p>
         </div>
 
-        <div style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 10, padding: '14px 18px', marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ background: optedOut ? 'rgba(239,68,68,0.08)' : 'rgba(16,185,129,0.08)', border: `1px solid ${optedOut ? 'rgba(239,68,68,0.2)' : 'rgba(16,185,129,0.2)'}`, borderRadius: 10, padding: '14px 18px', marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#10B981', marginBottom: 2 }}>✓ Co-Broking Network: Active</div>
-            <div style={{ fontSize: 13, color: '#595959' }}>Your listings are visible to 3 partner brokerages</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: optedOut ? '#EF4444' : '#10B981', marginBottom: 2 }}>
+              {optedOut ? '✗ Co-Broking Network: Opted Out' : '✓ Co-Broking Network: Active'}
+            </div>
+            <div style={{ fontSize: 13, color: '#595959' }}>
+              {optedOut ? 'Your listings are not visible to partner brokerages' : 'Your listings are visible to 3 partner brokerages'}
+            </div>
           </div>
-          <button style={{ background: 'transparent', color: '#EF4444', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, padding: '8px 14px', fontSize: 13, cursor: 'pointer' }}>Opt Out</button>
+          <button onClick={handleOptOut}
+            style={{ background: 'transparent', color: optedOut ? '#10B981' : '#EF4444', border: `1px solid ${optedOut ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}`, borderRadius: 8, padding: '8px 14px', fontSize: 13, cursor: 'pointer' }}>
+            {optedOut ? 'Re-Join' : 'Opt Out'}
+          </button>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>

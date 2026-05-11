@@ -92,7 +92,8 @@ export default function OpenHousesPage() {
             <h1 style={{ fontSize: 24, fontWeight: 800, color: '#fff', margin: 0 }}>Open Houses</h1>
             <p style={{ fontSize: 14, color: '#595959', margin: '4px 0 0' }}>Schedule, manage, and announce property viewings</p>
           </div>
-          <button style={{ background: '#703BF7', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', boxShadow: '0 0 20px rgba(112,59,247,0.3)' }}>
+          <button onClick={() => setToast('📅 Open House scheduling — use the mobile app to schedule a new open house')}
+            style={{ background: '#703BF7', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', boxShadow: '0 0 20px rgba(112,59,247,0.3)' }}>
             + Schedule Open House
           </button>
         </div>
@@ -153,13 +154,16 @@ export default function OpenHousesPage() {
                         📢 Announce on Social
                       </button>
                     )}
-                    <button style={{ background: 'transparent', color: '#703BF7', border: '1px solid rgba(112,59,247,0.3)', borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>View RSVPs</button>
-                    <button style={{ background: 'transparent', color: '#EF4444', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>Cancel</button>
+                    <button onClick={() => { setToast(`📋 RSVPs for ${oh.property}: ${oh.attending} attending, ${oh.maybe} maybe`) }}
+                      style={{ background: 'transparent', color: '#703BF7', border: '1px solid rgba(112,59,247,0.3)', borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>View RSVPs</button>
+                    <button onClick={() => { if (confirm(`Cancel open house for ${oh.property}?`)) { setOpenHouses(prev => prev.map(o => o.id === oh.id ? { ...o, status: 'cancelled' } : o)); setToast('✅ Open house cancelled') } }}
+                      style={{ background: 'transparent', color: '#EF4444', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>Cancel</button>
                   </div>
                 )}
                 {oh.status === 'completed' && (
                   <div style={{ marginLeft: 'auto' }}>
-                    <button style={{ background: 'transparent', color: '#595959', border: '1px solid #1A1A1A', borderRadius: 8, padding: '8px 14px', fontSize: 13, cursor: 'pointer' }}>View Summary</button>
+                    <button onClick={() => setToast(`📊 Summary: ${oh.attending + oh.maybe} total attendees, ${oh.attending} confirmed`)}
+                      style={{ background: 'transparent', color: '#595959', border: '1px solid #1A1A1A', borderRadius: 8, padding: '8px 14px', fontSize: 13, cursor: 'pointer' }}>View Summary</button>
                   </div>
                 )}
               </div>

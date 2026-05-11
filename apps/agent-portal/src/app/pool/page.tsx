@@ -1,6 +1,8 @@
+'use client'
+import { useState } from 'react'
 import { AgentSidebar } from '@/components/AgentSidebar'
 
-const POOL = [
+const INITIAL_POOL = [
   { id: 'p001', type: 'House & Lot', address: 'Molino Blvd, Bacoor, Cavite', price: '₱3,200,000', area: '100 sqm', status: 'available', daysInPool: 5 },
   { id: 'p002', type: 'Residential Lot', address: 'Tagaytay Road, Sta. Rosa, Laguna', price: '₱1,800,000', area: '150 sqm', status: 'available', daysInPool: 12 },
   { id: 'p003', type: 'Condo', address: 'IT Park, Cebu City', price: '₱4,800,000', area: '42 sqm', status: 'claimed', daysInPool: 3 },
@@ -8,10 +10,21 @@ const POOL = [
 ]
 
 export default function PoolPage() {
+  const [pool, setPool] = useState(INITIAL_POOL)
+  const [toast, setToast] = useState('')
+  function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(''), 3500) }
+
+  function handleClaim(id: string) {
+    setPool(prev => prev.map(p => p.id === id ? { ...p, status: 'claimed' } : p))
+    const prop = pool.find(p => p.id === id)
+    showToast(`✅ Claimed! Redirecting to create listing for ${prop?.address}…`)
+    setTimeout(() => { window.location.href = '/listings/new' }, 1500)
+  }
   return (
     <div style={{ display: 'flex', height: '100vh', background: '#000', fontFamily: "'Inter', system-ui, sans-serif", color: '#fff' }}>
       <AgentSidebar />
       <main style={{ flex: 1, overflow: 'auto', padding: 32 }}>
+        {toast && <div style={{ position: 'fixed', top: 24, right: 24, background: '#0D0D0D', border: '1px solid rgba(16,185,129,0.4)', borderRadius: 10, padding: '14px 20px', fontSize: 14, color: '#10B981', zIndex: 9999 }}>{toast}</div>}
         <div style={{ marginBottom: 28 }}>
           <h1 style={{ fontSize: 24, fontWeight: 800, color: '#fff', margin: 0 }}>Property Pool</h1>
           <p style={{ fontSize: 14, color: '#595959', margin: '4px 0 0' }}>Properties added by your brokerage — claim one to create a listing</p>
@@ -23,7 +36,7 @@ export default function PoolPage() {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
-          {POOL.map(p => (
+          {pool.map(p => (
             <div key={p.id} style={{ background: '#0D0D0D', border: `1px solid ${p.daysInPool > 25 ? 'rgba(245,158,11,0.3)' : '#1A1A1A'}`, borderRadius: 12, padding: 24 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
                 <div>
@@ -41,7 +54,8 @@ export default function PoolPage() {
                   <div style={{ fontSize: 11, color: p.daysInPool > 25 ? '#F59E0B' : '#595959' }}>{p.daysInPool} days in pool</div>
                 </div>
                 {p.status === 'available' && (
-                  <button style={{ background: '#703BF7', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer', boxShadow: '0 0 16px rgba(112,59,247,0.3)' }}>
+                  <button onClick={() => handleClaim(p.id)}
+                    style={{ background: '#703BF7', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer', boxShadow: '0 0 16px rgba(112,59,247,0.3)' }}>
                     Claim & List
                   </button>
                 )}

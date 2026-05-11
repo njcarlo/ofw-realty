@@ -34,7 +34,26 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
-  async function handleSubmit(e: React.FormEvent) {
+  const [showForgot, setShowForgot] = useState(false)
+  const [forgotEmail, setForgotEmail] = useState('')
+  const [forgotSent, setForgotSent] = useState(false)
+
+  async function handleForgotPassword() {
+    if (!forgotEmail.trim()) return
+    setLoading(true)
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      })
+      if (error) throw error
+      setForgotSent(true)
+    } catch (err: any) {
+      setError(err.message ?? 'Failed to send reset email')
+      setShowForgot(false)
+    } finally {
+      setLoading(false)
+    }
+  }
     e.preventDefault()
     setLoading(true); setError(null); setSuccess(null)
     try {
@@ -109,7 +128,7 @@ export default function LoginPage() {
             <div style={{ marginBottom: mode === 'register' ? 16 : 24 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                 <label style={{ fontSize: 13, fontWeight: 600, color: '#999' }}>Password</label>
-                {mode === 'login' && <a href="#" style={{ fontSize: 12, color: '#703BF7' }}>Forgot password?</a>}
+                {mode === 'login' && <button type="button" onClick={() => setShowForgot(true)} style={{ fontSize: 12, color: '#703BF7', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>Forgot password?</button>}
               </div>
               <input type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={8} placeholder="••••••••" style={inputStyle} />
             </div>
@@ -163,6 +182,43 @@ export default function LoginPage() {
           By signing in, you agree to our Terms of Service and Privacy Policy.
         </p>
       </div>
+
+      {/* Forgot password modal */}
+      {showForgot && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 24 }}>
+          <div style={{ background: '#0D0D0D', border: '1px solid #1A1A1A', borderRadius: 16, padding: 32, width: '100%', maxWidth: 420 }}>
+            {forgotSent ? (
+              <>
+                <div style={{ fontSize: 40, textAlign: 'center', marginBottom: 16 }}>📧</div>
+                <h2 style={{ fontSize: 20, fontWeight: 800, color: '#fff', textAlign: 'center', marginBottom: 8 }}>Check your email</h2>
+                <p style={{ fontSize: 14, color: '#595959', textAlign: 'center', marginBottom: 24 }}>We sent a password reset link to <strong style={{ color: '#fff' }}>{forgotEmail}</strong></p>
+                <button onClick={() => { setShowForgot(false); setForgotSent(false); setForgotEmail('') }}
+                  style={{ width: '100%', background: '#703BF7', color: '#fff', border: 'none', borderRadius: 8, padding: '12px 0', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                  Back to Sign In
+                </button>
+              </>
+            ) : (
+              <>
+                <h2 style={{ fontSize: 20, fontWeight: 800, color: '#fff', marginBottom: 8 }}>Reset Password</h2>
+                <p style={{ fontSize: 14, color: '#595959', marginBottom: 20 }}>Enter your email and we'll send you a reset link.</p>
+                <input type="email" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)}
+                  placeholder="juan@example.com"
+                  style={{ width: '100%', background: '#0D0D0D', border: '1px solid #1A1A1A', borderRadius: 8, padding: '12px 16px', fontSize: 14, color: '#fff', outline: 'none', boxSizing: 'border-box', marginBottom: 16 }} />
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button onClick={() => setShowForgot(false)}
+                    style={{ flex: 1, background: 'transparent', color: '#595959', border: '1px solid #1A1A1A', borderRadius: 8, padding: '12px 0', fontSize: 14, cursor: 'pointer' }}>
+                    Cancel
+                  </button>
+                  <button onClick={handleForgotPassword} disabled={loading || !forgotEmail.trim()}
+                    style={{ flex: 2, background: loading || !forgotEmail.trim() ? '#333' : '#703BF7', color: '#fff', border: 'none', borderRadius: 8, padding: '12px 0', fontSize: 14, fontWeight: 600, cursor: loading || !forgotEmail.trim() ? 'not-allowed' : 'pointer' }}>
+                    {loading ? 'Sending…' : 'Send Reset Link'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
