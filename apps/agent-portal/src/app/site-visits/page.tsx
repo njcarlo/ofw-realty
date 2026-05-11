@@ -1,3 +1,5 @@
+'use client'
+import { useState } from 'react'
 import { AgentSidebar } from '@/components/AgentSidebar'
 
 const VISITS = [
@@ -6,16 +8,20 @@ const VISITS = [
 ]
 
 export default function SiteVisitsPage() {
+  const [toast, setToast] = useState('')
+  function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(''), 3500) }
   return (
     <div style={{ display: 'flex', height: '100vh', background: '#000', fontFamily: "'Inter', system-ui, sans-serif", color: '#fff' }}>
       <AgentSidebar />
       <main style={{ flex: 1, overflow: 'auto', padding: 32 }}>
+        {toast && <div style={{ position: 'fixed', top: 24, right: 24, background: '#0D0D0D', border: '1px solid rgba(16,185,129,0.4)', borderRadius: 10, padding: '14px 20px', fontSize: 14, color: '#10B981', zIndex: 9999 }}>{toast}</div>}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
           <div>
             <h1 style={{ fontSize: 24, fontWeight: 800, color: '#fff', margin: 0 }}>GPS Site Visits</h1>
             <p style={{ fontSize: 14, color: '#595959', margin: '4px 0 0' }}>Live GPS-verified property visits for OFW buyers</p>
           </div>
-          <button style={{ background: '#703BF7', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', boxShadow: '0 0 20px rgba(112,59,247,0.3)' }}>
+          <button onClick={() => showToast('📍 Start a new GPS site visit from the LUPA PH mobile app')}
+            style={{ background: '#703BF7', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', boxShadow: '0 0 20px rgba(112,59,247,0.3)' }}>
             📍 Start New Visit
           </button>
         </div>
@@ -54,7 +60,8 @@ export default function SiteVisitsPage() {
                   </div>
                 ))}
                 <div style={{ marginLeft: 'auto' }}>
-                  <button style={{ background: 'transparent', color: '#703BF7', border: '1px solid rgba(112,59,247,0.3)', borderRadius: 8, padding: '8px 14px', fontSize: 13, cursor: 'pointer' }}>
+                  <button onClick={() => showToast(`📋 Site visit record for ${v.property}: ${v.duration}, ${v.photos} photos, ${v.videos} videos — full report available in mobile app`)}
+                    style={{ background: 'transparent', color: '#703BF7', border: '1px solid rgba(112,59,247,0.3)', borderRadius: 8, padding: '8px 14px', fontSize: 13, cursor: 'pointer' }}>
                     View Site Visit Record
                   </button>
                 </div>
