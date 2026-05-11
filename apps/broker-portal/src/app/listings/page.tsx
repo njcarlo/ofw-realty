@@ -1,3 +1,6 @@
+const AGENT_PORTAL_URL = process.env.NEXT_PUBLIC_AGENT_PORTAL_URL ?? 'https://ofw-realty-agent-portal.vercel.app'
+const WEB_URL = process.env.NEXT_PUBLIC_WEB_URL ?? 'https://ofw-realty-web.vercel.app'
+
 import { BrokerSidebar } from '@/components/BrokerSidebar'
 
 const LISTINGS = [
@@ -24,10 +27,9 @@ export default function BrokerListingsPage() {
             <h1 style={{ fontSize: 24, fontWeight: 800, color: '#fff', margin: 0 }}>All Listings</h1>
             <p style={{ fontSize: 14, color: '#595959', margin: '4px 0 0' }}>{LISTINGS.length} properties across all agents</p>
           </div>
-          <a href="http://localhost:3002/listings/new" style={{ background: '#703BF7', color: '#fff', padding: '10px 20px', borderRadius: 8, fontSize: 14, fontWeight: 600, boxShadow: '0 0 20px rgba(112,59,247,0.3)' }}>
+          <a href={`${AGENT_PORTAL_URL}/listings/new`} style={{ background: '#703BF7', color: '#fff', padding: '10px 20px', borderRadius: 8, fontSize: 14, fontWeight: 600, boxShadow: '0 0 20px rgba(112,59,247,0.3)' }}>
             + Add Listing
-          </a>
-        </div>
+          </a>        </div>
 
         <div style={{ background: '#0D0D0D', border: '1px solid #1A1A1A', borderRadius: 12, overflow: 'hidden' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 140px 140px 80px 80px 100px', padding: '12px 20px', borderBottom: '1px solid #141414' }}>

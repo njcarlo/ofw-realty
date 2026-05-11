@@ -28,13 +28,13 @@ const NAV = [
 ]
 
 const PORTAL_LINKS = [
-  { label: 'Web',        href: process.env.NEXT_PUBLIC_WEB_URL ?? 'http://localhost:3000' },
-  { label: 'Agent',      href: process.env.NEXT_PUBLIC_AGENT_PORTAL_URL ?? 'http://localhost:3002' },
-  { label: 'Broker',     href: process.env.NEXT_PUBLIC_BROKER_PORTAL_URL ?? 'http://localhost:3003' },
+  { label: 'Web',        href: process.env.NEXT_PUBLIC_WEB_URL ?? 'https://ofw-realty-web.vercel.app' },
+  { label: 'Agent',      href: process.env.NEXT_PUBLIC_AGENT_PORTAL_URL ?? 'https://ofw-realty-agent-portal.vercel.app' },
+  { label: 'Broker',     href: process.env.NEXT_PUBLIC_BROKER_PORTAL_URL ?? 'https://ofw-realty-broker-portal.vercel.app' },
   { label: 'Developer',  href: process.env.NEXT_PUBLIC_DEVELOPER_PORTAL_URL ?? 'http://localhost:3005' },
   { label: 'Services',   href: process.env.NEXT_PUBLIC_SERVICES_PORTAL_URL ?? 'http://localhost:3006' },
-  { label: 'AI',         href: 'http://localhost:3007' },
-  { label: 'B2B',        href: 'http://localhost:3008' },
+  { label: 'AI',         href: process.env.NEXT_PUBLIC_AI_CONCIERGE_URL ?? 'https://ofw-realty-concierge-portal.vercel.app' },
+  { label: 'B2B',        href: process.env.NEXT_PUBLIC_B2B_NETWORK_URL ?? 'https://ofw-realty-broker-to-broker-portal.vercel.app' },
 ]
 
 export function AdminSidebar() {

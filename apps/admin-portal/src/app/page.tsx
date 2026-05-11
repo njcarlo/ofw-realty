@@ -87,13 +87,13 @@ export default async function AdminDashboard() {
   const [stats, activity] = await Promise.all([getStats(), getRecentActivity()])
 
   const portals = [
-    { name: 'Web Marketplace', url: process.env.NEXT_PUBLIC_WEB_URL ?? 'http://localhost:3000', icon: '🌐', color: '#10B981', desc: 'Public listings & buyer portal' },
-    { name: 'Agent Portal', url: process.env.NEXT_PUBLIC_AGENT_PORTAL_URL ?? 'http://localhost:3002', icon: '👤', color: '#703BF7', desc: 'Agent dashboard & listings' },
-    { name: 'Broker Portal', url: process.env.NEXT_PUBLIC_BROKER_PORTAL_URL ?? 'http://localhost:3003', icon: '🏢', color: '#F59E0B', desc: 'Brokerage management' },
+    { name: 'Web Marketplace', url: process.env.NEXT_PUBLIC_WEB_URL ?? 'https://ofw-realty-web.vercel.app', icon: '🌐', color: '#10B981', desc: 'Public listings & buyer portal' },
+    { name: 'Agent Portal', url: process.env.NEXT_PUBLIC_AGENT_PORTAL_URL ?? 'https://ofw-realty-agent-portal.vercel.app', icon: '👤', color: '#703BF7', desc: 'Agent dashboard & listings' },
+    { name: 'Broker Portal', url: process.env.NEXT_PUBLIC_BROKER_PORTAL_URL ?? 'https://ofw-realty-broker-portal.vercel.app', icon: '🏢', color: '#F59E0B', desc: 'Brokerage management' },
     { name: 'Developer Portal', url: process.env.NEXT_PUBLIC_DEVELOPER_PORTAL_URL ?? 'http://localhost:3005', icon: '🏗️', color: '#8B5CF6', desc: 'Project & unit management' },
     { name: 'Services Portal', url: process.env.NEXT_PUBLIC_SERVICES_PORTAL_URL ?? 'http://localhost:3006', icon: '🛠️', color: '#06B6D4', desc: 'Real estate services marketplace' },
-    { name: 'AI Concierge', url: 'http://localhost:3007', icon: '🤖', color: '#EC4899', desc: 'Listahan voice AI assistant' },
-    { name: 'B2B Network', url: 'http://localhost:3008', icon: '🤝', color: '#F97316', desc: 'Broker networking platform' },
+    { name: 'AI Concierge', url: process.env.NEXT_PUBLIC_AI_CONCIERGE_URL ?? 'https://ofw-realty-concierge-portal.vercel.app', icon: '🤖', color: '#EC4899', desc: 'Listahan voice AI assistant' },
+    { name: 'B2B Network', url: process.env.NEXT_PUBLIC_B2B_NETWORK_URL ?? 'https://ofw-realty-broker-to-broker-portal.vercel.app', icon: '🤝', color: '#F97316', desc: 'Broker networking platform' },
   ]
 
   return (
