@@ -35,6 +35,7 @@ export default function AdsPage() {
   const [showModal, setShowModal] = useState(false)
   const [toast, setToast] = useState('')
   const [fbConnected, setFbConnected] = useState(false)
+  const [fbAdAccountMissing, setFbAdAccountMissing] = useState(false)
 
   // New campaign form state
   const [listingId, setListingId] = useState('')
@@ -94,10 +95,19 @@ export default function AdsPage() {
   }
 
   async function updateStatus(id: string, action: 'pause' | 'resume' | 'stop') {
-    await fetch(`${API}/ads/${id}/${action}`, { method: 'PATCH', credentials: 'include' })
-    setToast(`✅ Campaign ${action}d.`)
-    setTimeout(() => setToast(''), 3000)
-    loadData()
+    try {
+      const res = await fetch(`${API}/ads/${id}/${action}`, { method: 'PATCH', credentials: 'include' })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        setToast(`❌ Failed to ${action} campaign: ${err.message ?? res.statusText}`)
+        return
+      }
+      setToast(`✅ Campaign ${action}d.`)
+      loadData()
+    } catch {
+      setToast(`❌ Network error — could not ${action} campaign. Check your connection.`)
+    }
+    setTimeout(() => setToast(''), 4000)
   }
 
   function toggleCountry(code: string) {
@@ -127,19 +137,28 @@ export default function AdsPage() {
           </div>
           <button
             onClick={() => setShowModal(true)}
-            disabled={!fbConnected}
-            title={!fbConnected ? 'Connect your Facebook account first' : ''}
-            style={{ background: fbConnected ? '#703BF7' : '#1A1A1A', color: fbConnected ? '#fff' : '#595959', border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: fbConnected ? 'pointer' : 'not-allowed', boxShadow: fbConnected ? '0 0 20px rgba(112,59,247,0.3)' : 'none' }}
+            disabled={!fbConnected || fbAdAccountMissing}
+            title={!fbConnected ? 'Connect your Facebook account first' : fbAdAccountMissing ? 'Select an Ad Account first' : ''}
+            style={{ background: fbConnected && !fbAdAccountMissing ? '#703BF7' : '#1A1A1A', color: fbConnected && !fbAdAccountMissing ? '#fff' : '#595959', border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: fbConnected && !fbAdAccountMissing ? 'pointer' : 'not-allowed', boxShadow: fbConnected && !fbAdAccountMissing ? '0 0 20px rgba(112,59,247,0.3)' : 'none' }}
           >
             📢 New Campaign
           </button>
         </div>
 
-        {/* Facebook connection banner */}
         <FacebookConnectBanner
-          onConnected={() => setFbConnected(true)}
-          onDisconnected={() => setFbConnected(false)}
+          onConnected={(conn) => {
+            setFbConnected(true)
+            setFbAdAccountMissing(!conn.fb_ad_account_id)
+          }}
+          onDisconnected={() => { setFbConnected(false); setFbAdAccountMissing(false) }}
         />
+
+        {/* Warning when connected but no ad account selected */}
+        {fbConnected && fbAdAccountMissing && (
+          <div style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 10, padding: '10px 16px', marginBottom: 20, fontSize: 13, color: '#F59E0B' }}>
+            ⚠️ No Ad Account selected. Click "Change Account" above to pick your Meta Ad Account before creating campaigns.
+          </div>
+        )}
 
         {/* Budget cap */}
         <div style={{ background: '#0D0D0D', border: `1px solid ${spend?.warning ? 'rgba(239,68,68,0.3)' : '#1A1A1A'}`, borderRadius: 12, padding: 20, marginBottom: 24 }}>

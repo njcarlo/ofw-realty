@@ -73,7 +73,7 @@ export default function ListingsPage() {
               </div>
               <div style={{ display: 'flex', gap: 6 }}>
                 <a href={`/listings/${l.id}`} style={{ fontSize: 12, color: '#703BF7', padding: '5px 10px', borderRadius: 6, border: '1px solid rgba(112,59,247,0.3)', background: 'rgba(112,59,247,0.08)' }}>Edit</a>
-                <a href={`http://localhost:3000/listings/${l.id}`} target="_blank" style={{ fontSize: 12, color: '#595959', padding: '5px 10px', borderRadius: 6, border: '1px solid #1A1A1A' }}>View</a>
+                <a href={`${process.env.NEXT_PUBLIC_WEB_URL ?? 'https://ofw-realty-web.vercel.app'}/listings/${l.id}`} target="_blank" style={{ fontSize: 12, color: '#595959', padding: '5px 10px', borderRadius: 6, border: '1px solid #1A1A1A' }}>View</a>
               </div>
             </div>
           ))}

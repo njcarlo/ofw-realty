@@ -1,19 +1,65 @@
-// Services Portal — Landing page with featured providers and recent requests
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://ofw-realty-api-production.up.railway.app'
 
-const FEATURED_PROVIDERS = [
-  { name: 'Atty. Maria Santos', type: 'Notarization · Legal Consultation', rating: 4.9, engagements: 87, featured: true },
-  { name: 'Engr. Jose Reyes', type: 'Geodetic Survey', rating: 4.8, engagements: 64, featured: true },
-  { name: 'Maria Cruz, MAE', type: 'Property Appraisal', rating: 4.7, engagements: 52, featured: true },
+const DEMO_FEATURED = [
+  { id: 'p1', full_name: 'Atty. Maria Santos', service_types: ['Notarization', 'Legal Consultation'], avg_rating: 4.9, completed_engagements: 87, is_featured: true },
+  { id: 'p2', full_name: 'Engr. Jose Reyes', service_types: ['Geodetic Survey'], avg_rating: 4.8, completed_engagements: 64, is_featured: true },
+  { id: 'p3', full_name: 'Maria Cruz, MAE', service_types: ['Property Appraisal'], avg_rating: 4.7, completed_engagements: 52, is_featured: true },
 ]
 
-const RECENT_REQUESTS = [
-  { id: '1', type: 'Property Appraisal', location: 'Bacoor, Cavite', posted: '2h ago', status: 'Open' },
-  { id: '2', type: 'Title Transfer', location: 'Quezon City, Metro Manila', posted: '5h ago', status: 'Open' },
-  { id: '3', type: 'Geodetic Survey', location: 'Sta. Rosa, Laguna', posted: '1d ago', status: 'Open' },
-  { id: '4', type: 'Notarization', location: 'Makati, Metro Manila', posted: '1d ago', status: 'Open' },
+const DEMO_REQUESTS = [
+  { id: 'r1', service_type: 'Property Appraisal', province: 'Cavite', city: 'Bacoor', created_at: new Date(Date.now() - 2 * 3600000).toISOString() },
+  { id: 'r2', service_type: 'Title Transfer', province: 'Metro Manila', city: 'Quezon City', created_at: new Date(Date.now() - 5 * 3600000).toISOString() },
+  { id: 'r3', service_type: 'Geodetic Survey', province: 'Laguna', city: 'Sta. Rosa', created_at: new Date(Date.now() - 86400000).toISOString() },
+  { id: 'r4', service_type: 'Notarization', province: 'Metro Manila', city: 'Makati', created_at: new Date(Date.now() - 86400000).toISOString() },
 ]
 
-export default function ServicesPortalHome() {
+const SERVICE_TYPE_LABELS: Record<string, string> = {
+  property_appraisal:         'Property Appraisal',
+  geodetic_survey:            'Geodetic Survey',
+  title_transfer:             'Title Transfer',
+  notarization:               'Notarization',
+  legal_consultation:         'Legal Consultation',
+  property_tax_assistance:    'Property Tax Assistance',
+  building_permit_processing: 'Building Permit Processing',
+  other:                      'Other',
+}
+
+function timeAgo(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime()
+  const hrs = Math.floor(diff / 3600000)
+  if (hrs < 1) return 'Just now'
+  if (hrs < 24) return `${hrs}h ago`
+  return `${Math.floor(hrs / 24)}d ago`
+}
+
+async function getFeaturedProviders() {
+  try {
+    const res = await fetch(`${API}/service-providers?limit=3`, { cache: 'no-store' })
+    if (res.ok) {
+      const data = await res.json()
+      if (data.length) return { providers: data.slice(0, 3), isDemo: false }
+    }
+  } catch {}
+  return { providers: DEMO_FEATURED, isDemo: true }
+}
+
+async function getRecentRequests() {
+  try {
+    const res = await fetch(`${API}/service-requests?status=open&limit=4`, { cache: 'no-store' })
+    if (res.ok) {
+      const data = await res.json()
+      if (data.length) return data.slice(0, 4)
+    }
+  } catch {}
+  return DEMO_REQUESTS
+}
+
+export default async function ServicesPortalHome() {
+  const [{ providers, isDemo }, recentRequests] = await Promise.all([
+    getFeaturedProviders(),
+    getRecentRequests(),
+  ])
+
   return (
     <div style={{ padding: 32, fontFamily: "'Inter', system-ui, sans-serif", color: '#fff' }}>
       {/* Hero */}
@@ -26,100 +72,57 @@ export default function ServicesPortalHome() {
           Connect with licensed appraisers, geodetic engineers, notaries, and other real estate professionals across the Philippines.
         </p>
         <div style={{ display: 'flex', gap: 12 }}>
-          <a
-            href="/requests/new"
-            style={{
-              background: '#703BF7',
-              color: '#fff',
-              padding: '12px 24px',
-              borderRadius: 8,
-              fontSize: 14,
-              fontWeight: 600,
-              boxShadow: '0 0 20px rgba(112,59,247,0.3)',
-            }}
-          >
+          <a href="/requests/new" style={{ background: '#703BF7', color: '#fff', padding: '12px 24px', borderRadius: 8, fontSize: 14, fontWeight: 600, boxShadow: '0 0 20px rgba(112,59,247,0.3)', textDecoration: 'none' }}>
             Post a Request
           </a>
-          <a
-            href="/providers"
-            style={{
-              background: '#0D0D0D',
-              color: '#999',
-              padding: '12px 24px',
-              borderRadius: 8,
-              fontSize: 14,
-              fontWeight: 500,
-              border: '1px solid #1A1A1A',
-            }}
-          >
+          <a href="/providers" style={{ background: '#0D0D0D', color: '#999', padding: '12px 24px', borderRadius: 8, fontSize: 14, fontWeight: 500, border: '1px solid #1A1A1A', textDecoration: 'none' }}>
             Browse Providers
           </a>
         </div>
       </div>
 
+      {isDemo && (
+        <div style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 10, padding: '10px 16px', marginBottom: 24, fontSize: 13, color: '#F59E0B' }}>
+          ⚠️ Showing sample data — API not yet connected.
+        </div>
+      )}
+
       {/* Featured Providers */}
       <section style={{ marginBottom: 40 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, color: '#fff', margin: 0 }}>⭐ Featured Providers</h2>
-          <a href="/providers" style={{ fontSize: 13, color: '#703BF7' }}>View all →</a>
+          <a href="/providers" style={{ fontSize: 13, color: '#703BF7', textDecoration: 'none' }}>View all →</a>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-          {FEATURED_PROVIDERS.map((provider, i) => (
-            <div
-              key={i}
-              style={{
-                background: '#0D0D0D',
-                border: '1px solid #262626',
-                borderRadius: 12,
-                padding: '20px 22px',
-                position: 'relative',
-              }}
+          {providers.map((provider: any, i: number) => (
+            <a
+              key={provider.id ?? i}
+              href={`/providers/${provider.id}`}
+              style={{ display: 'block', background: '#0D0D0D', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 12, padding: '20px 22px', position: 'relative', textDecoration: 'none', color: 'inherit' }}
             >
-              {provider.featured && (
-                <span style={{
-                  position: 'absolute',
-                  top: 14,
-                  right: 14,
-                  fontSize: 10,
-                  fontWeight: 700,
-                  padding: '3px 8px',
-                  borderRadius: 99,
-                  background: 'rgba(245,158,11,0.15)',
-                  color: '#F59E0B',
-                  border: '1px solid rgba(245,158,11,0.25)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                }}>
-                  Featured
-                </span>
-              )}
+              <span style={{ position: 'absolute', top: 14, right: 14, fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 99, background: 'rgba(245,158,11,0.15)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.25)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Featured
+              </span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                <div style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: '50%',
-                  background: 'rgba(112,59,247,0.15)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 20,
-                }}>
+                <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(112,59,247,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
                   👤
                 </div>
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{provider.name}</div>
-                  <div style={{ fontSize: 12, color: '#595959' }}>{provider.type}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{provider.full_name}</div>
+                  <div style={{ fontSize: 12, color: '#595959' }}>
+                    {Array.isArray(provider.service_types)
+                      ? provider.service_types.map((t: string) => SERVICE_TYPE_LABELS[t] ?? t).join(' · ')
+                      : provider.service_types}
+                  </div>
                 </div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ fontSize: 13, color: '#F59E0B', fontWeight: 600 }}>
-                  ★ {provider.rating}
-                </div>
-                <div style={{ fontSize: 12, color: '#595959' }}>
-                  {provider.engagements} completed
-                </div>
+                <span style={{ fontSize: 13, color: '#F59E0B', fontWeight: 600 }}>
+                  {provider.avg_rating ? `★ ${Number(provider.avg_rating).toFixed(1)}` : 'No ratings yet'}
+                </span>
+                <span style={{ fontSize: 12, color: '#595959' }}>{provider.completed_engagements} completed</span>
               </div>
-            </div>
+            </a>
           ))}
         </div>
       </section>
@@ -128,50 +131,29 @@ export default function ServicesPortalHome() {
       <section>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, color: '#fff', margin: 0 }}>📋 Recent Requests</h2>
-          <a href="/requests" style={{ fontSize: 13, color: '#703BF7' }}>View all →</a>
+          <a href="/requests" style={{ fontSize: 13, color: '#703BF7', textDecoration: 'none' }}>View all →</a>
         </div>
         <div style={{ background: '#0D0D0D', border: '1px solid #1A1A1A', borderRadius: 12, overflow: 'hidden' }}>
-          {RECENT_REQUESTS.map((req, i) => (
+          {recentRequests.map((req: any, i: number) => (
             <a
-              key={req.id}
+              key={req.id ?? i}
               href={`/requests/${req.id}`}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 16,
-                padding: '16px 20px',
-                borderBottom: i < RECENT_REQUESTS.length - 1 ? '1px solid #141414' : 'none',
-              }}
+              style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', borderBottom: i < recentRequests.length - 1 ? '1px solid #141414' : 'none', textDecoration: 'none', color: 'inherit' }}
             >
-              <div style={{
-                width: 40,
-                height: 40,
-                borderRadius: 10,
-                background: 'rgba(112,59,247,0.1)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 18,
-                flexShrink: 0,
-              }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(112,59,247,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
                 📋
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>{req.type}</div>
-                <div style={{ fontSize: 12, color: '#595959' }}>{req.location}</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>
+                  {SERVICE_TYPE_LABELS[req.service_type] ?? req.service_type}
+                </div>
+                <div style={{ fontSize: 12, color: '#595959' }}>{req.city}, {req.province}</div>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <span style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  padding: '3px 8px',
-                  borderRadius: 99,
-                  background: 'rgba(16,185,129,0.15)',
-                  color: '#10B981',
-                }}>
-                  {req.status}
+                <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 99, background: 'rgba(16,185,129,0.15)', color: '#10B981' }}>
+                  Open
                 </span>
-                <div style={{ fontSize: 11, color: '#595959', marginTop: 4 }}>{req.posted}</div>
+                <div style={{ fontSize: 11, color: '#595959', marginTop: 4 }}>{timeAgo(req.created_at)}</div>
               </div>
             </a>
           ))}

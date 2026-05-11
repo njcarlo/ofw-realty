@@ -1,5 +1,3 @@
-import Link from 'next/link'
-
 const API = process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL ?? 'https://ofw-realty-api-production.up.railway.app'
 
 const DEMO_PENDING = [
@@ -8,15 +6,15 @@ const DEMO_PENDING = [
   { id: 'd3', doc_type: 'NBI Clearance', doc_number: 7, owner_id: 'agent-002', owner_name: 'Juan Dela Cruz', owner_type: 'realtor', status: 'submitted', created_at: new Date(Date.now() - 24 * 3600000).toISOString() },
 ]
 
-async function getPendingDocs() {
+async function getPendingDocs(): Promise<{ docs: any[]; isDemo: boolean }> {
   try {
     const res = await fetch(`${API}/documents/pending`, { cache: 'no-store' })
     if (res.ok) {
       const data = await res.json()
-      return data.length > 0 ? data : DEMO_PENDING
+      if (data.length > 0) return { docs: data, isDemo: false }
     }
   } catch {}
-  return DEMO_PENDING
+  return { docs: DEMO_PENDING, isDemo: true }
 }
 
 function timeAgo(iso: string) {
@@ -26,8 +24,8 @@ function timeAgo(iso: string) {
   return `${Math.floor(hrs / 24)}d ago`
 }
 
-export default async function AdminDashboard() {
-  const pendingDocs = await getPendingDocs()
+export default async function AdminVerificationsPage() {
+  const { docs: pendingDocs, isDemo } = await getPendingDocs()
 
   const grouped = pendingDocs.reduce((acc: any, doc: any) => {
     const key = doc.owner_id
@@ -37,17 +35,14 @@ export default async function AdminDashboard() {
   }, {})
 
   return (
-    <div style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: "'Inter', system-ui, sans-serif", padding: 32 }}>
+    <div style={{ padding: 32, color: '#fff', fontFamily: "'Inter', system-ui, sans-serif" }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-            <div style={{ width: 36, height: 36, background: 'linear-gradient(135deg, #703BF7, #9B6DFF)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>🏠</div>
-            <span style={{ fontSize: 20, fontWeight: 800, color: '#fff' }}>LUPA <span style={{ color: '#703BF7' }}>PH</span> Admin</span>
-          </div>
-          <p style={{ fontSize: 14, color: '#595959', margin: 0 }}>Agent & Broker Verification Dashboard</p>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: '#fff', margin: 0 }}>Verifications</h1>
+          <p style={{ fontSize: 14, color: '#595959', margin: '4px 0 0' }}>Agent & Broker document review queue</p>
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <div style={{ background: '#0D0D0D', border: '1px solid #1A1A1A', borderRadius: 10, padding: '10px 16px', textAlign: 'center' }}>
             <div style={{ fontSize: 22, fontWeight: 800, color: '#F59E0B' }}>{pendingDocs.length}</div>
             <div style={{ fontSize: 11, color: '#595959' }}>Pending Docs</div>
@@ -59,10 +54,23 @@ export default async function AdminDashboard() {
         </div>
       </div>
 
-      {/* How verification works */}
+      {/* Demo mode banner */}
+      {isDemo && (
+        <div style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 10, padding: '10px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 16 }}>⚠️</span>
+          <div>
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#F59E0B' }}>Demo Mode</span>
+            <span style={{ fontSize: 13, color: '#595959', marginLeft: 8 }}>
+              Could not reach the API — showing sample data. Real submissions will appear here once the API is connected.
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Verification process explainer */}
       <div style={{ background: 'rgba(112,59,247,0.06)', border: '1px solid rgba(112,59,247,0.2)', borderRadius: 12, padding: '16px 20px', marginBottom: 28 }}>
         <div style={{ fontSize: 14, fontWeight: 600, color: '#703BF7', marginBottom: 8 }}>📋 Verification Process</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, fontSize: 13, color: '#595959' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
           {[
             { step: '1', label: 'Agent registers', desc: 'Creates account with role: Agent' },
             { step: '2', label: 'Uploads 9 docs', desc: 'PRC, ID, NBI, DTI, etc.' },
@@ -78,7 +86,7 @@ export default async function AdminDashboard() {
         </div>
       </div>
 
-      {/* Pending reviews grouped by agent */}
+      {/* Pending reviews */}
       <div style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 16 }}>
         Pending Document Reviews
         {pendingDocs.length > 0 && (
@@ -98,7 +106,6 @@ export default async function AdminDashboard() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {Object.entries(grouped).map(([ownerId, agent]: any) => (
             <div key={ownerId} style={{ background: '#0D0D0D', border: '1px solid #1A1A1A', borderRadius: 12, overflow: 'hidden' }}>
-              {/* Agent header */}
               <div style={{ padding: '16px 20px', borderBottom: '1px solid #141414', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(112,59,247,0.1)', border: '1px solid rgba(112,59,247,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
@@ -109,17 +116,14 @@ export default async function AdminDashboard() {
                     <div style={{ fontSize: 12, color: '#595959', textTransform: 'capitalize' }}>{agent.type} · {agent.docs.length} document{agent.docs.length !== 1 ? 's' : ''} pending</div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <span style={{ fontSize: 12, color: '#595959' }}>
-                    {agent.docs.length}/9 docs submitted
-                  </span>
-                  <div style={{ background: '#141414', borderRadius: 99, height: 6, width: 80, overflow: 'hidden', alignSelf: 'center' }}>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <span style={{ fontSize: 12, color: '#595959' }}>{agent.docs.length}/9 docs submitted</span>
+                  <div style={{ background: '#141414', borderRadius: 99, height: 6, width: 80, overflow: 'hidden' }}>
                     <div style={{ width: `${(agent.docs.length / 9) * 100}%`, height: '100%', background: '#703BF7', borderRadius: 99 }} />
                   </div>
                 </div>
               </div>
 
-              {/* Documents */}
               {agent.docs.map((doc: any, i: number) => (
                 <div key={doc.id} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px', borderBottom: i < agent.docs.length - 1 ? '1px solid #141414' : 'none' }}>
                   <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>
@@ -135,16 +139,10 @@ export default async function AdminDashboard() {
                     </a>
                   )}
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <a
-                      href={`/api/documents/${doc.id}/approve`}
-                      style={{ background: 'rgba(16,185,129,0.1)', color: '#10B981', fontSize: 12, fontWeight: 600, padding: '6px 14px', borderRadius: 8, textDecoration: 'none', border: '1px solid rgba(16,185,129,0.3)' }}
-                    >
+                    <a href={`/api/documents/${doc.id}/approve`} style={{ background: 'rgba(16,185,129,0.1)', color: '#10B981', fontSize: 12, fontWeight: 600, padding: '6px 14px', borderRadius: 8, textDecoration: 'none', border: '1px solid rgba(16,185,129,0.3)' }}>
                       ✓ Approve
                     </a>
-                    <a
-                      href={`/api/documents/${doc.id}/reject`}
-                      style={{ background: 'rgba(239,68,68,0.1)', color: '#EF4444', fontSize: 12, fontWeight: 600, padding: '6px 14px', borderRadius: 8, textDecoration: 'none', border: '1px solid rgba(239,68,68,0.3)' }}
-                    >
+                    <a href={`/api/documents/${doc.id}/reject`} style={{ background: 'rgba(239,68,68,0.1)', color: '#EF4444', fontSize: 12, fontWeight: 600, padding: '6px 14px', borderRadius: 8, textDecoration: 'none', border: '1px solid rgba(239,68,68,0.3)' }}>
                       ✗ Reject
                     </a>
                   </div>
@@ -155,11 +153,11 @@ export default async function AdminDashboard() {
         </div>
       )}
 
-      {/* Quick guide */}
+      {/* Required docs reference */}
       <div style={{ marginTop: 32, background: '#0D0D0D', border: '1px solid #1A1A1A', borderRadius: 12, padding: 20 }}>
         <div style={{ fontSize: 14, fontWeight: 600, color: '#fff', marginBottom: 12 }}>📌 Required Documents (9 total)</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-          {['PRC License', 'Valid Government ID', 'NBI Clearance', 'DTI/SEC Registration', 'BIR Certificate', 'Mayor\'s Permit', 'HLURB/DHSUD License', 'Proof of Address', 'Professional Tax Receipt'].map((doc, i) => (
+          {['PRC License', 'Valid Government ID', 'NBI Clearance', 'DTI/SEC Registration', 'BIR Certificate', "Mayor's Permit", 'HLURB/DHSUD License', 'Proof of Address', 'Professional Tax Receipt'].map((doc, i) => (
             <div key={doc} style={{ fontSize: 12, color: '#595959', display: 'flex', alignItems: 'center', gap: 6 }}>
               <span style={{ color: '#703BF7', fontWeight: 700 }}>{i + 1}.</span> {doc}
             </div>
