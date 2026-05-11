@@ -1,7 +1,7 @@
 import { AdminSidebar } from '@/components/AdminSidebar'
 import { supabaseAdmin } from '@/lib/supabase'
 
-const B2B_URL = 'http://localhost:3008'
+const B2B_URL = process.env.NEXT_PUBLIC_B2B_NETWORK_URL ?? 'https://ofw-realty-broker-to-broker-portal.vercel.app'
 
 async function getB2BStats() {
   const [profiles, posts, connections, services, verifications] = await Promise.all([

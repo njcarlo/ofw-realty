@@ -1,7 +1,7 @@
 import { AdminSidebar } from '@/components/AdminSidebar'
 import Link from 'next/link'
 
-const AI_URL = 'http://localhost:3007'
+const AI_URL = process.env.NEXT_PUBLIC_AI_CONCIERGE_URL ?? 'https://ofw-realty-concierge-portal.vercel.app'
 
 export default function AIPage() {
   return (

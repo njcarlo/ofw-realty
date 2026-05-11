@@ -1,3 +1,5 @@
+const WEB_URL = process.env.NEXT_PUBLIC_WEB_URL ?? 'https://ofw-realty-web.vercel.app'
+
 import { BrokerSidebar } from '@/components/BrokerSidebar'
 
 export default function CompanyProfilePage() {
@@ -11,7 +13,7 @@ export default function CompanyProfilePage() {
             <p style={{ fontSize: 14, color: '#595959', margin: '4px 0 0' }}>Your public brokerage page on LUPAPH</p>
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
-            <a href="http://localhost:3000/brokers/lupaph-realty" target="_blank" style={{ background: '#0D0D0D', color: '#999', padding: '10px 18px', borderRadius: 8, fontSize: 14, fontWeight: 500, border: '1px solid #1A1A1A' }}>
+            <a href={`${WEB_URL}/brokers/lupaph-realty`} target="_blank" style={{ background: '#0D0D0D', color: '#999', padding: '10px 18px', borderRadius: 8, fontSize: 14, fontWeight: 500, border: '1px solid #1A1A1A' }}>
               👁️ View Public Page
             </a>
             <button style={{ background: '#703BF7', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer', boxShadow: '0 0 20px rgba(112,59,247,0.3)' }}>
