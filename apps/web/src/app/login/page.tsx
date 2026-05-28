@@ -54,6 +54,8 @@ export default function LoginPage() {
       setLoading(false)
     }
   }
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true); setError(null); setSuccess(null)
     try {
